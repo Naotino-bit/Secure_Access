@@ -22,10 +22,19 @@
     //echo "<script type='text/javascript'>console.log('$result->num_rows');</script>";
     if ($result->num_rows > 0) {
         $_SESSION['user'] = $_POST["email"];
-        header("Location: http://localhost:8083");
+        header("Location: http://localhost:8083/dashboard.php");
     } else {
-        $_SESSION["error_message"] = "Credenziali non valide";
-        header("Location: http://localhost:8083");
+        $stmt = $conn->prepare("SELECT * FROM Visitors WHERE Email = (?) and Password = (?)");
+        $stmt->bind_param("ss", $email, $password);
+        $stmt->execute();
+        $result= $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $_SESSION['user'] = $_POST["email"];
+            header("Location: http://localhost:8083/dashboard.php");
+        } else {
+            $_SESSION["error_message"] = "Credenziali non valide";
+            header("Location: http://localhost:8083");
+        }
     }
 
 

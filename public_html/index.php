@@ -1,4 +1,8 @@
 <?php 
+
+$mode = $_GET['mode'] ?? 'login'; // login di default
+$error = $_GET['error']?? '';
+
 session_start();
 if(isset($_SESSION["user"])) {
         echo "<script type='text/javascript'>console.log('sei loggato');</script>";
@@ -9,7 +13,8 @@ if(isset($_SESSION["user"])) {
         $error_html = '<p style="color: red; font-weight: bold; padding: 10px; border: 1px solid red; width:fit-content">' . htmlspecialchars($error_message) . '</p>';
         echo $error_html;
         unset($_SESSION['error_message']);
-    }?>
+    }  if ($mode === 'login') {?>
+
         <form action="login.php" method="post">
             <label for="email">Email:</label>
             <input type="text" id="email" name="email" required><br>
@@ -17,9 +22,58 @@ if(isset($_SESSION["user"])) {
             <input type="text" id="password" name="password" required><br>
             <input type="submit" value="Login">
         </form>
-<?php
+
+            <!-- BUTTON SWITCH -->
+        <a href="index.php?mode=register">
+            <button>Vai a Register</button>
+        </a>
+    <?php } else { if(isset($error)) {
+        echo $error;
+        } ?>
+        
+        <form action="register.php" method="post">
+            <label for="name">Nome:</label>
+            <input type="text" id="name" name="name" required><br>
+            <label for="surname">Cognome:</label>
+            <input type="text" id="surname" name="surname" required><br>
+            <label for="dateBirth">Data di nascita:</label>
+            <input type="date" id="dateBirth" name="dateBirth" required><br>
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" required><br>
+            <label for="password">Password:</label>
+            <input type="text" id="password" name="password" required><br>
+            <label for="reason">Reason</label>
+            <select name="reason" id="reason" required>
+                <option value=""></option>
+                <option value="visita">Visita</option>
+                <option value="appuntamento">Appuntamento</option>
+            </select><br>
+
+            <input type="submit" value="Register">
+        </form>
+
+
+            <!-- BUTTON SWITCH -->
+        <a href="index.php?mode=login">
+            <button>Vai a Login</button>
+        </a>
+<?php }
 }?>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--
 <table>
     <tr>
         <th>Id</th>
@@ -35,7 +89,7 @@ if(isset($_SESSION["user"])) {
 
 
     <tr>
-<?php
+/*
     require 'db_connection.php';
 
     $query = "SELECT * FROM Users";
