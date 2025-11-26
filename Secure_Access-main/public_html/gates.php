@@ -5,81 +5,106 @@ session_start();
 $message = "";
 $access_granted = null;
 
+// SE ABBIAMO INVIATO IL FORM (Tentativo di accesso)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $badgeId = intval($_POST['badge_id']);
-    $gateId = 1; // Simuliamo che sia il Tornello n.1 (Ingresso Principale)
+    $gateId = intval($_POST['gate_id']); // Ora prendiamo l'ID scelto dal menu
     
-    // 1. Controlliamo se il Badge esiste ed è valido
-    $stmt = $conn->prepare("SELECT BadgeLevel, ExpirationDate FROM Badges WHERE IdBadge = ?");
-    $stmt->bind_param("i", $badgeId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    $timestamp = date("Y-m-d H:i:s");
-    $esito = "DENIED"; // Di base è negato
+    // 1. Recuperiamo info sul Badge
+    $stmtBadge = $conn->prepare("SELECT BadgeLevel, ExpirationDate FROM Badges WHERE IdBadge = ?");
+    $stmtBadge->bind_param("i", $badgeId);
+    $stmtBadge->execute();
+    $resBadge = $stmtBadge->get_result();
+    $badge = $resBadge->fetch_assoc();
+    $stmtBadge->close();
 
-    if ($row = $result->fetch_assoc()) {
-        $scadenza = $row['ExpirationDate'];
-        
-        // Controllo Scadenza
-        if ($scadenza != NULL && new DateTime() > new DateTime($scadenza)) {
-            $message = "ACCESSO NEGATO: Badge Scaduto!";
-            $access_granted = false;
-            $esito = "EXPIRED";
-        } else {
-            // Controllo Livello (Esempio: serve almeno livello 1)
-            if ($row['BadgeLevel'] >= 1) {
-                $message = "ACCESSO CONSENTITO: Benvenuto!";
-                $access_granted = true;
-                $esito = "GRANTED";
-            } else {
-                $message = "ACCESSO NEGATO: Livello insufficiente.";
-                $access_granted = false;
-                $esito = "LOW_LEVEL";
-            }
-        }
-    } else {
-        $message = "ACCESSO NEGATO: Badge non trovato.";
+    // 2. Recuperiamo info sul Gate (Livello richiesto)
+    $stmtGate = $conn->prepare("SELECT SecurityLevel, Type FROM Gates WHERE IdGate = ?");
+    $stmtGate->bind_param("i", $gateId);
+    $stmtGate->execute();
+    $resGate = $stmtGate->get_result();
+    $gate = $resGate->fetch_assoc();
+    $stmtGate->close();
+
+    $timestamp = date("Y-m-d H:i:s");
+    $esito = "DENIED"; 
+
+    // LOGICA DI CONTROLLO
+    if (!$badge) {
+        $message = "ERRORE: Badge non esistente!";
         $access_granted = false;
         $esito = "NOT_FOUND";
+    } elseif (!$gate) {
+        $message = "ERRORE: Gate non trovato nel sistema!";
+        $access_granted = false;
+        $esito = "ERROR";
+    } elseif ($badge['ExpirationDate'] != NULL && new DateTime() > new DateTime($badge['ExpirationDate'])) {
+        $message = "ACCESSO NEGATO: Badge Scaduto!";
+        $access_granted = false;
+        $esito = "EXPIRED";
+    } elseif ($badge['BadgeLevel'] >= $gate['SecurityLevel']) {
+        // SE IL LIVELLO DEL BADGE È UGUALE O SUPERIORE AL LIVELLO DEL GATE
+        $message = "ACCESSO CONSENTITO: Benvenuto in " . htmlspecialchars($gate['Type']);
+        $access_granted = true;
+        $esito = "GRANTED";
+    } else {
+        $message = "ACCESSO NEGATO: Livello insufficiente per questa zona.";
+        $access_granted = false;
+        $esito = "LOW_LEVEL";
     }
-    $stmt->close();
 
-    // 2. REGISTRAZIONE LOG NELLA TABELLA ACCESSES
-    // Nota: Salviamo IdBadge, non IdUser/IdVisitor!
+    // 3. REGISTRIAMO IL LOG NEL DB
     $logStmt = $conn->prepare("INSERT INTO Accesses (Time, Result, IdGate, IdBadge) VALUES (?, ?, ?, ?)");
     $logStmt->bind_param("ssii", $timestamp, $esito, $gateId, $badgeId);
     $logStmt->execute();
     $logStmt->close();
 }
+
+// Recuperiamo la lista dei Gates per popolare il menu a tendina
+$gatesList = $conn->query("SELECT * FROM Gates");
 ?>
 
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulazione Tornello</title>
+    <title>Simulazione Varco</title>
     <style>
         body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #333; color: white; }
-        .scanner-box { background: #444; padding: 30px; border-radius: 10px; display: inline-block; }
-        input[type="number"] { padding: 10px; font-size: 1.2em; width: 100px; text-align: center; }
-        button { padding: 10px 20px; font-size: 1.2em; cursor: pointer; background-color: #007bff; color: white; border: none; }
-        
+        .scanner-box { background: #444; padding: 30px; border-radius: 10px; display: inline-block; width: 400px; }
+        select, input { width: 90%; padding: 10px; margin: 10px 0; font-size: 1.1em; border-radius: 5px; border: none; }
+        button { width: 95%; padding: 10px; font-size: 1.2em; cursor: pointer; background-color: #007bff; color: white; border: none; margin-top: 15px; border-radius: 5px; }
         .result { margin-top: 20px; padding: 20px; font-size: 1.5em; border-radius: 5px; }
         .success { background-color: #28a745; }
         .error { background-color: #dc3545; }
+        a { color: #ccc; text-decoration: none; display: block; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <h1>Simulazione Gate #1</h1>
+    <h1>Simulazione Controllo Accessi</h1>
     
     <div class="scanner-box">
         <form method="POST">
-            <label>Scansiona Badge (Inserisci ID):</label><br><br>
-            <input type="number" name="badge_id" required autofocus placeholder="ID">
-            <button type="submit">ENTRA</button>
+            <label>Seleziona Varco:</label>
+            <select name="gate_id" required>
+                <?php 
+                if ($gatesList && $gatesList->num_rows > 0) {
+                    while($row = $gatesList->fetch_assoc()): ?>
+                        <option value="<?php echo $row['IdGate']; ?>">
+                            <?php echo htmlspecialchars($row['Type']); ?> (Liv. <?php echo $row['SecurityLevel']; ?>)
+                        </option>
+                    <?php endwhile; 
+                } else {
+                    echo "<option value=''>Nessun Gate nel Database</option>";
+                }
+                ?>
+            </select>
+
+            <label>ID Badge (Simula NFC):</label>
+            <input type="number" name="badge_id" required placeholder="Es. 14" autofocus>
+
+            <button type="submit">SCANSIONA</button>
         </form>
     </div>
 
@@ -89,10 +114,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     <?php endif; ?>
 
-    <br><br>
-    <a href="dashboard.php" style="color: #ccc;">Torna alla Dashboard Admin</a>
+    <a href="logs.php">Visualizza Storico Accessi &rarr;</a>
+    <a href="dashboard.php">Torna alla Dashboard</a>
 
 </body>
 </html>
-
-

@@ -37,7 +37,7 @@
     //RICERCA IN USERS E VISITORS ATTRAVERSO L'EMAIL E VERIFICA DELLA PASSWORD
 
 
-    $query= "SELECT Email, Password, 1 as is_verified FROM Users WHERE Email = (?)
+    $query= "SELECT Email, Password, is_verified FROM Users WHERE Email = (?)
              UNION 
              SELECT Email, Password, is_verified FROM Visitors WHERE Email = (?)";
     $stmt = $conn->prepare($query);

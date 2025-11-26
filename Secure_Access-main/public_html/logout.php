@@ -5,5 +5,3 @@ session_destroy();
 header("Location: index.php");
 ?>
 
-
-<!-- anto puzza -->

@@ -49,7 +49,7 @@ function SendVerificationEmail($recipientEmail, $token){
             )
             );
 
-        $mail->setFrom('projectsecureaccess@gmail.com','Gestionale Admin');
+        $mail->setFrom('$smtpUser','Gestionale Admin');
         $mail->addAddress($recipientEmail);
         
         $mail->isHTML(true);

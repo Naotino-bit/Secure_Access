@@ -2,7 +2,6 @@
     require "db_connection.php";
     session_start();
 
-    // 1. Controllo Accesso
     if (!isset($_SESSION['user'])) {
         header("Location: index.php");
         exit();
@@ -10,38 +9,30 @@
 
     $email = $_SESSION['user']; 
 
-    // 2. QUERY DATI UTENTE LOGGATO
-    // Ho aggiunto B.ExpirationDate e B.DateOfIssue alla SELECT
-    // così possiamo mostrare quando scade il badge
+    // Recupero dati utente e LIVELLO BADGE
     $query = "
         SELECT U.Name, U.Surname, B.BadgeLevel, B.ExpirationDate, B.DateOfIssue
-        FROM Users U 
-        JOIN Badges B ON U.IdBadge = B.IdBadge 
-        WHERE U.Email = ?
-        
+        FROM Users U JOIN Badges B ON U.IdBadge = B.IdBadge WHERE U.Email = ?
         UNION
-        
         SELECT V.Name, V.Surname, B.BadgeLevel, B.ExpirationDate, B.DateOfIssue
-        FROM Visitors V 
-        JOIN Badges B ON V.IdBadge = B.IdBadge 
-        WHERE V.Email = ?
+        FROM Visitors V JOIN Badges B ON V.IdBadge = B.IdBadge WHERE V.Email = ?
     ";
 
     $stmt = $conn->prepare($query);
-    if (!$stmt) { die("Errore nella query: " . $conn->error); }
     $stmt->bind_param("ss", $email, $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Variabili per l'utente corrente
     $currentUser = null;
     $badgeLevel = 0;
 
     if($row = $result->fetch_assoc()) {
-        $currentUser = $row; // Salviamo tutti i dati in un array
+        $currentUser = $row; 
         $badgeLevel = $row['BadgeLevel'];
     } else {
-        die("Errore: Utente non trovato.");
+        session_destroy();
+        header("Location: index.php");
+        exit();
     }
     $stmt->close();
 ?>
@@ -50,129 +41,76 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Gestionale</title>
+    <title>Dashboard</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
+        /* CSS Base */
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f6f9; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .msg-box { padding: 10px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         
-        /* Stile per il Badge (Visitatore) */
-        .badge-card {
-            border: 2px solid #007bff; border-radius: 10px; padding: 20px; 
-            max-width: 350px; background: linear-gradient(135deg, #fff 0%, #e6f2ff 100%);
-            margin-top: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .badge-header { border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 10px; font-weight: bold; color: #007bff; }
-        .badge-info p { margin: 5px 0; }
-        .expired { color: red; font-weight: bold; }
+        /* Tabelle */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+        th { background-color: #f8f9fa; color: #495057; font-weight: 600; }
+        .btn-update { background-color: #007bff; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-logout { background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; float: right; font-weight: bold; }
+        .role-label { padding: 3px 8px; border-radius: 12px; font-size: 0.85em; font-weight: bold; }
+        .role-admin { background-color: #e8daef; color: #8e44ad; }
+        .role-dip { background-color: #d6eaf8; color: #2980b9; }
 
-        /* Stile per la Tabella (Admin) */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #007bff; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-
-        .btn-logout { background-color: #dc3545; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px;}
+        /* Mappa */
+        .map-box { margin-top: 30px; border: 2px dashed #ccc; background: #eee; padding: 40px; text-align: center; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Benvenuto, <?php echo htmlspecialchars($currentUser['Name'] . " " . $currentUser['Surname']); ?></h1>
     
-    <?php if ($badgeLevel == 1): ?>
-        
-        <h2>Il tuo Badge Digitale</h2>
-        <div class="badge-card">
-            <div class="badge-header">VISITATORE AUTORIZZATO</div>
-            <div class="badge-info">
-                <p><strong>Nome:</strong> <?php echo htmlspecialchars($currentUser['Name']); ?></p>
-                <p><strong>Cognome:</strong> <?php echo htmlspecialchars($currentUser['Surname']); ?></p>
-                <p><strong>Email:</strong> <?php echo htmlspecialchars($email); ?></p>
-                <hr>
-                <p><strong>Emesso il:</strong> <?php echo date("d/m/Y", strtotime($currentUser['DateOfIssue'])); ?></p>
-                <p><strong>Scadenza:</strong> 
-                    <?php 
-                        $scadenza = strtotime($currentUser['ExpirationDate']);
-                        // Se oggi è maggiore della scadenza, scrivi in rosso
-                        if (time() > $scadenza) {
-                            echo "<span class='expired'>" . date("d/m/Y", $scadenza) . " (SCADUTO)</span>";
-                        } else {
-                            echo date("d/m/Y", $scadenza);
-                        }
-                    ?>
-                </p>
-            </div>
-        </div>
-
-    <?php elseif ($badgeLevel >= 2): ?>
-
-        <?php 
-            $ruolo = ($badgeLevel == 3) ? "Amministratore" : "Dipendente";
-            echo "<p style='color:green; font-weight:bold;'>Accesso Livello: $ruolo</p>"; 
-        ?>
-
-        <h3>Lista Visitatori Registrati</h3>
-        
-        <?php
-            // NUOVA QUERY: Recuperiamo tutti i visitatori per mostrarli all'admin
-            // Facciamo una JOIN per vedere anche quando scadono i loro badge
-            $adminQuery = "
-                SELECT V.Name, V.Surname, V.Email, V.Reason, V.is_verified, B.ExpirationDate 
-                FROM Visitors V
-                JOIN Badges B ON V.IdBadge = B.IdBadge
-                ORDER BY B.ExpirationDate DESC
-            ";
-            $resultVisitatori = $conn->query($adminQuery);
-        ?>
-
-        <?php if ($resultVisitatori->num_rows > 0): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Motivo</th>
-                        <th>Stato</th>
-                        <th>Gestione Ruolo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while($vis = $resultVisitatori->fetch_assoc()): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($vis['Name'] . " " . $vis['Surname']); ?></td>
-                            <td><?php echo htmlspecialchars($vis['Email']); ?></td>
-                            <td><?php echo htmlspecialchars($vis['Reason']); ?></td>
-                            <td>
-                                <?php echo $vis['is_verified'] ? "<span style='color:green'>Verificato</span>" : "<span style='color:red'>Non Verificato</span>"; ?>
-                            </td>
-                            <td>
-                                <form action="promote.php" method="POST" style="display:flex; gap:10px;">
-                                    <input type="hidden" name="email_to_promote" value="<?php echo $vis['Email']; ?>">
-                                    
-                                    <select name="new_level">
-                                        <option value="1" selected>Visitatore (Lvl 1)</option>
-                                        <option value="2">Dipendente (Lvl 2)</option>
-                                        <option value="3">Admin (Lvl 3)</option>
-                                    </select>
-
-                                    <button type="submit" onclick="return confirm('Sei sicuro di voler cambiare il ruolo a questo utente?');">
-                                        Aggiorna
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p>Nessun visitatore registrato al momento.</p>
-        <?php endif; ?>
-
+    <?php if (isset($_GET['success'])): ?>
+        <div class="msg-box success">Operazione riuscita!</div>
+    <?php endif; ?>
+    <?php if (isset($_GET['error'])): ?>
+        <div class="msg-box error">Errore: <?php echo htmlspecialchars($_GET['error']); ?></div>
     <?php endif; ?>
 
-    <a href="logout.php" class="btn-logout">Logout</a>
-</div>
+    <a href="logout.php" class="btn-logout">Esci</a>
+    <h1>Benvenuto, <?php echo htmlspecialchars($currentUser['Name']); ?></h1>
+    
+    <div style="border-left: 5px solid #007bff; padding: 15px; background: #f8f9fa; margin-bottom: 20px;">
+        <h3>IL TUO BADGE: 
+            <?php 
+                if($badgeLevel == 1) echo "VISITATORE";
+                elseif($badgeLevel == 2) echo "DIPENDENTE";
+                elseif($badgeLevel == 3) echo "AMMINISTRATORE";
+            ?>
+        </h3>
+        <p>Scadenza: <?php echo $currentUser['ExpirationDate'] ? date("d/m/Y", strtotime($currentUser['ExpirationDate'])) : "Illimitata"; ?></p>
+    </div>
 
+    <div class="map-box" data-level="<?php echo $badgeLevel; ?>">
+        <h2>🗺️ Mappa Edificio</h2>
+        <p>Livello Accesso: <?php echo $badgeLevel; ?></p>
+        <p>[Qui comparirà la mappa interattiva]</p>
+    </div>
+
+    <?php 
+        // 1. SEI ADMIN (LIVELLO 3) -> Vedi tutto e puoi modificare
+        if ($badgeLevel == 3) {
+            include 'includes/admin_panel.php';
+        } 
+        // 2. SEI DIPENDENTE (LIVELLO 2) -> Vedi solo tabelle sola lettura
+        elseif ($badgeLevel == 2) {
+            include 'includes/employee_view.php';
+        } 
+        // 3. SEI VISITATORE (LIVELLO 1) -> Non vedi nulla sotto la mappa
+    ?>
+
+    <br>
+    <a href="gates.php" style="color:#666; text-decoration:none;">&larr; Vai al Simulatore Gate</a>
+
+</div>
 </body>
 </html>
