@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  php-apache:
+    build: .                         # usa il Dockerfile nella directory corrente
+    container_name: db_project_php_apache
+    ports:
+      - "8083:80"                    # http://localhost:8080
+    volumes:
+      - ./public_html:/var/www/html  # bind mount sulla cartella locale
+    env_file:
+    - .env
+    depends_on:
+      - mysql
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    networks:
+      - devnet
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db_project
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - devnet
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin_db_project
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8082:80"                    # http://localhost:8082
+    networks:
+      - devnet
+
+volumes:
+  mysql_data:
+
+networks:
+  devnet:
+    driver: bridge
