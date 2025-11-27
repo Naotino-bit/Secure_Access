@@ -2,5 +2,6 @@
 session_start();
 $_SESSION = array();
 session_destroy();
-header("Location: http://localhost:8083");
+header("Location: index.php");
 ?>
+

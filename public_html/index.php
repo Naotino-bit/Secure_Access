@@ -1,113 +1,113 @@
 <?php 
-
-$mode = $_GET['mode'] ?? 'login'; // login di default
-$error = $_GET['error']?? '';
-
 session_start();
-if(isset($_SESSION["user"])) {
-        echo "<script type='text/javascript'>console.log('sei loggato');</script>";
-        ?><a href="logout.php"><button>logout</button></a><?php
-    } else {
-    if(isset($_SESSION['error_message'])) {
-        $error_message =  $_SESSION['error_message'];
-        $error_html = '<p style="color: red; font-weight: bold; padding: 10px; border: 1px solid red; width:fit-content">' . htmlspecialchars($error_message) . '</p>';
-        echo $error_html;
-        unset($_SESSION['error_message']);
-    }  if ($mode === 'login') {?>
 
+// 1. Controllo se l'utente è già loggato
+if(isset($_SESSION["user"])) {
+    header("Location: dashboard.php");
+    exit(); 
+}
+
+// 2. Gestione Errori
+$error_message = '';
+
+if(isset($_SESSION['error_message'])) { // se c'è un errore
+    $error_message = $_SESSION['error_message']; // me lo segno
+    unset($_SESSION['error_message']); // lo rimuovo
+} elseif (isset($_GET['error'])) {
+    $error_message = $_GET['error']; // prende l'errore dall'URL
+}
+
+$mode = $_GET['mode'] ?? 'login'; // login di default se non specificato
+
+?>
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo ucfirst($mode); ?> - Gestionale</title>
+    <style>
+        /* Stile di base per rendere la pagina leggibile */
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        form { margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        input[type="submit"] { margin-top: 20px; cursor: pointer; background-color: #007bff; color: white; border: none; }
+        .error-box { color: red; font-weight: bold; padding: 10px; border: 1px solid red; background-color: #ffeeee; margin-bottom: 15px; }
+        .switch-btn { margin-top: 15px; display: block; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h1>Benvenuto</h1>
+
+    <?php if (!empty($error_message)): ?>
+        <div class="error-box">
+            <?php echo htmlspecialchars($error_message); ?>
+        </div>
+    <?php endif; ?>
+
+
+    <?php if ($mode === 'login'): ?>
+        
         <form action="login.php" method="post">
+            <h2>Accedi</h2>
             <label for="email">Email:</label>
-            <input type="text" id="email" name="email" required><br>
+            <input type="email" id="email" name="email" required>
+            
             <label for="password">Password:</label>
-            <input type="text" id="password" name="password" required><br>
+            <input type="password" id="password" name="password" required>
+            
             <input type="submit" value="Login">
         </form>
 
-            <!-- BUTTON SWITCH -->
-        <a href="index.php?mode=register">
-            <button>Vai a Register</button>
-        </a>
-    <?php } else { if(isset($error)) {
-        echo $error;
-        } ?>
-        
+        <div class="switch-btn">
+            <p>Non hai un account?</p>
+            <a href="index.php?mode=register">
+                <button type="button">Vai a Register</button>
+            </a>
+        </div>
+
+    <?php else: ?>
+
         <form action="register.php" method="post">
+            <h2>Registrazione</h2>
             <label for="name">Nome:</label>
-            <input type="text" id="name" name="name" required><br>
+            <input type="text" id="name" name="name" required>
+
             <label for="surname">Cognome:</label>
-            <input type="text" id="surname" name="surname" required><br>
+            <input type="text" id="surname" name="surname" required>
+
             <label for="dateBirth">Data di nascita:</label>
-            <input type="date" id="dateBirth" name="dateBirth" required><br>
+            <input type="date" id="dateBirth" name="dateBirth" required>
+
             <label for="email">Email:</label>
-            <input type="text" id="email" name="email" required><br>
+            <input type="email" id="email" name="email" required placeholder = "esempio@mail.com">
+
             <label for="password">Password:</label>
-            <input type="text" id="password" name="password" required><br>
-            <label for="reason">Reason</label>
+            <input type="password" id="password" name="password" required
+                   pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}"
+                   title="La password deve essere di almeno 8 caratteri, contenere una maiuscola, un numero e un carattere speciale.">
+
+            <label for="reason">Motivo:</label>
             <select name="reason" id="reason" required>
-                <option value=""></option>
+                <option value="" disabled selected>Seleziona un motivo</option>
                 <option value="visita">Visita</option>
                 <option value="appuntamento">Appuntamento</option>
-            </select><br>
+            </select>
 
             <input type="submit" value="Register">
         </form>
 
+        <div class="switch-btn">
+            <p>Hai già un account?</p>
+            <a href="index.php?mode=login">
+                <button type="button">Vai a Login</button>
+            </a>
+        </div>
 
-            <!-- BUTTON SWITCH -->
-        <a href="index.php?mode=login">
-            <button>Vai a Login</button>
-        </a>
-<?php }
-}?>
+    <?php endif; ?>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!--
-<table>
-    <tr>
-        <th>Id</th>
-        <th>Ruolo</th>
-        <th>Email</th>
-        <th>Password</th>
-        <th>Nome</th>
-        <th>Cognome</th>
-        <th>Data di nascita</th>
-        <th>Id badge</th>
-    </tr>
-
-
-
-    <tr>
-/*
-    require 'db_connection.php';
-
-    $query = "SELECT * FROM Users";
-    $result = $conn->query($query);
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $entry =  "<tr><td>{$row['IdUser']}</td>";
-            $entry .= "<td>{$row['Role']}</td>";
-            $entry .= "<td>{$row['Email']}</td>";
-            $entry .= "<td>{$row['Password']}</td>";
-            $entry .= "<td>{$row['Nome']}</td>";
-            $entry .= "<td>{$row['Cognome']}</td>";
-            $entry .= "<td>{$row['DataNascita']}</td>";
-            $entry .= "<td>{$row['IdBadge']}</td>";
-
-            echo $entry;
-        }
-    }
-?>
-    </tr>
-</table>
+</body>
+</html>
