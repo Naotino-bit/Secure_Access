@@ -1,5 +1,0 @@
-SMTP_HOST=smtp.gmail.com
-SMTP_USER=projectsecureaccess@gmail.com
-SMTP_PASSWORD=huzn mxog qajh vndu
-SMTP_PORT=465
-BASE_URL=http://localhost:8083
