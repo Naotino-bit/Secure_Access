@@ -1,0 +1,13 @@
+projectsecureaccess@gmail.com
+PSA2025!
+huzn mxog qajh vndu
+
+
+prossimo passo: eliminazione visitors e utenti dal sito, prolungamento badge
+
+
+AGGGIUNERE FROM IN TEBELLA ACCESSI
+PARTE SPOSTAMENTO SIMULATO
+
+prendo l'ultima posizione dell'utente tramite accesses, se non c'è è come se sta entrando per la prima volta nell'edifico(1 - hall)
+cosi che quando apro la lista delle posizioni mostra solo dove posso andare 
