@@ -1,0 +1,1309 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.3
+-- https://www.phpmyadmin.net/
+--
+-- Host: mysql
+-- Creato il: Mar 04, 2026 alle 16:18
+-- Versione del server: 8.0.44
+-- Versione PHP: 8.3.27
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `Secure_Access`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Accesses`
+--
+
+CREATE TABLE `Accesses` (
+  `IdAccess` int NOT NULL,
+  `Time` datetime NOT NULL,
+  `Result` varchar(128) NOT NULL,
+  `IdGate` int NOT NULL,
+  `IdBadge` int NOT NULL,
+  `IdSectorTo` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Accesses`
+--
+
+INSERT INTO `Accesses` (`IdAccess`, `Time`, `Result`, `IdGate`, `IdBadge`, `IdSectorTo`) VALUES
+(313, '2026-01-24 10:41:51', 'GRANTED', 5, 65, 33),
+(314, '2026-01-24 10:42:56', 'GRANTED', 5, 65, 1),
+(315, '2026-01-24 10:42:59', 'GRANTED', 6, 65, 27),
+(316, '2026-01-24 10:46:51', 'GRANTED', 35, 65, 33),
+(317, '2026-01-24 10:58:00', 'GRANTED', 5, 65, 1),
+(318, '2026-01-24 10:58:02', 'GRANTED', 5, 65, 33),
+(319, '2026-01-24 10:58:03', 'GRANTED', 35, 65, 27),
+(320, '2026-01-24 10:58:33', 'GRANTED', 37, 65, 29),
+(321, '2026-01-24 10:58:37', 'GRANTED', 37, 65, 27),
+(322, '2026-01-24 10:59:25', 'GRANTED', 35, 65, 33),
+(323, '2026-01-24 10:59:26', 'GRANTED', 5, 65, 1),
+(324, '2026-01-24 10:59:29', 'GRANTED', 5, 65, 33),
+(325, '2026-01-24 11:00:08', 'GRANTED', 5, 65, 1),
+(326, '2026-01-24 11:00:14', 'GRANTED', 5, 65, 33),
+(327, '2026-01-24 11:06:13', 'GRANTED', 35, 65, 27),
+(328, '2026-01-24 11:06:16', 'LOW_LEVEL', 36, 65, 28),
+(329, '2026-01-24 11:07:35', 'GRANTED', 35, 65, 33),
+(330, '2026-01-24 11:07:37', 'GRANTED', 5, 65, 1),
+(331, '2026-01-24 11:07:45', 'GRANTED', 5, 65, 33),
+(332, '2026-01-24 11:07:48', 'GRANTED', 5, 65, 1),
+(333, '2026-01-24 13:09:07', 'GRANTED', 6, 66, 27),
+(334, '2026-01-24 13:09:35', 'GRANTED', 35, 66, 33),
+(335, '2026-01-24 13:09:38', 'GRANTED', 5, 66, 1),
+(336, '2026-01-24 16:56:58', 'GRANTED', 5, 66, 33),
+(337, '2026-01-24 16:57:08', 'GRANTED', 5, 66, 1),
+(338, '2026-01-24 17:03:53', 'GRANTED', 5, 66, 33),
+(339, '2026-01-24 17:12:59', 'GRANTED', 5, 66, 1),
+(340, '2026-01-24 18:34:31', 'GRANTED', 5, 66, 33),
+(341, '2026-01-24 18:38:53', 'GRANTED', 5, 67, 33),
+(342, '2026-01-24 18:38:54', 'GRANTED', 5, 67, 1),
+(343, '2026-01-24 18:49:09', 'GRANTED', 6, 67, 27),
+(344, '2026-01-24 18:54:51', 'LOW_LEVEL', 5, 68, 33),
+(345, '2026-01-24 18:54:57', 'LOW_LEVEL', 6, 68, 27),
+(346, '2026-01-24 18:54:58', 'LOW_LEVEL', 3, 68, 4),
+(347, '2026-01-24 18:54:58', 'LOW_LEVEL', 2, 68, 3),
+(348, '2026-01-24 18:54:59', 'LOW_LEVEL', 1, 68, 2),
+(349, '2026-01-24 18:55:05', 'LOW_LEVEL', 6, 68, 27),
+(350, '2026-01-24 18:55:13', 'LOW_LEVEL', 6, 68, 27),
+(351, '2026-01-24 18:55:15', 'LOW_LEVEL', 5, 68, 33),
+(352, '2026-01-24 18:55:16', 'LOW_LEVEL', 3, 68, 4),
+(353, '2026-01-24 18:55:17', 'LOW_LEVEL', 2, 68, 3),
+(354, '2026-01-24 18:56:01', 'LOW_LEVEL', 6, 68, 27),
+(355, '2026-01-24 18:56:02', 'LOW_LEVEL', 3, 68, 4),
+(356, '2026-01-24 18:56:03', 'LOW_LEVEL', 2, 68, 3),
+(357, '2026-01-24 18:56:04', 'LOW_LEVEL', 4, 68, 5),
+(358, '2026-01-24 18:56:05', 'LOW_LEVEL', 5, 68, 33),
+(359, '2026-01-24 18:56:06', 'LOW_LEVEL', 6, 68, 27),
+(360, '2026-01-24 18:56:10', 'LOW_LEVEL', 6, 68, 27),
+(361, '2026-01-24 18:56:11', 'LOW_LEVEL', 5, 68, 33),
+(362, '2026-01-24 18:56:16', 'LOW_LEVEL', 5, 68, 33),
+(363, '2026-01-24 18:57:52', 'LOW_LEVEL', 5, 65, 33),
+(364, '2026-01-24 19:00:02', 'LOW_LEVEL', 3, 65, 4),
+(365, '2026-01-24 19:00:04', 'LOW_LEVEL', 6, 65, 27),
+(366, '2026-01-24 19:00:09', 'LOW_LEVEL', 4, 65, 5),
+(367, '2026-01-24 19:00:11', 'LOW_LEVEL', 4, 65, 5),
+(368, '2026-01-24 19:10:57', 'REQUIRED_MAINTENANCE', 5, 66, 1),
+(369, '2026-01-24 19:11:05', 'REQUIRED_MAINTENANCE', 5, 66, 1),
+(370, '2026-01-24 19:11:26', 'GRANTED', 14, 66, 5),
+(371, '2026-01-24 19:11:27', 'GRANTED', 4, 66, 1),
+(372, '2026-01-24 19:11:28', 'REQUIRED_MAINTENANCE', 5, 66, 33),
+(373, '2026-01-24 19:13:33', 'REQUIRED_MAINTENANCE', 5, 66, 33),
+(374, '2026-01-24 19:14:02', 'REQUIRED_MAINTENANCE', 5, 66, 33),
+(375, '2026-01-24 19:14:28', 'REQUIRED_MAINTENANCE', 5, 66, 33),
+(376, '2026-01-24 19:14:29', 'GRANTED', 4, 66, 5),
+(377, '2026-01-24 19:14:30', 'GRANTED', 14, 66, 33),
+(378, '2026-01-24 19:14:33', 'REQUIRED_MAINTENANCE', 5, 66, 1),
+(379, '2026-01-24 19:27:44', 'GRANTED', 5, 66, 1),
+(380, '2026-01-24 19:28:15', 'GRANTED', 5, 66, 33),
+(381, '2026-01-24 19:29:42', 'GRANTED', 5, 66, 1),
+(382, '2026-01-24 19:34:05', 'GRANTED', 5, 66, 33),
+(383, '2026-01-24 19:34:53', 'GRANTED', 5, 66, 1),
+(384, '2026-01-24 19:36:04', 'GRANTED', 5, 66, 33),
+(385, '2026-01-24 19:36:18', 'GRANTED', 5, 66, 1),
+(386, '2026-01-24 19:37:00', 'GRANTED', 5, 66, 33),
+(387, '2026-01-24 19:37:34', 'GRANTED', 5, 66, 1),
+(388, '2026-01-24 19:37:51', 'GRANTED', 5, 66, 33),
+(389, '2026-01-24 19:47:45', 'REQUIRED_MAINTENANCE', 5, 66, 1),
+(390, '2026-01-24 19:47:47', 'GRANTED', 14, 66, 5),
+(391, '2026-01-24 19:47:57', 'GRANTED', 4, 66, 1),
+(392, '2026-01-24 19:48:09', 'REQUIRED_MAINTENANCE', 5, 66, 33),
+(393, '2026-01-24 19:48:10', 'REQUIRED_MAINTENANCE', 5, 66, 33),
+(394, '2026-01-24 19:57:00', 'GRANTED', 5, 66, 33),
+(395, '2026-01-24 19:57:11', 'REQUIRED_MAINTENANCE', 5, 66, 1),
+(396, '2026-01-24 19:58:32', 'GRANTED', 5, 66, 1),
+(397, '2026-01-25 15:25:08', 'GRANTED', 5, 66, 33),
+(398, '2026-01-25 15:25:09', 'GRANTED', 5, 66, 1),
+(399, '2026-01-25 15:25:09', 'GRANTED', 5, 66, 33),
+(400, '2026-01-25 15:25:10', 'GRANTED', 5, 66, 1),
+(401, '2026-01-25 15:25:10', 'GRANTED', 5, 66, 33),
+(402, '2026-01-25 15:25:11', 'GRANTED', 5, 66, 1),
+(403, '2026-01-25 15:25:11', 'GRANTED', 5, 66, 33),
+(404, '2026-01-25 15:25:12', 'GRANTED', 5, 66, 1),
+(405, '2026-01-25 15:25:12', 'GRANTED', 5, 66, 33),
+(406, '2026-01-25 15:25:13', 'GRANTED', 5, 66, 1),
+(407, '2026-01-25 15:25:13', 'GRANTED', 5, 66, 33),
+(408, '2026-01-25 15:25:14', 'GRANTED', 5, 66, 1),
+(409, '2026-01-25 15:25:15', 'GRANTED', 5, 66, 33),
+(410, '2026-01-25 15:25:15', 'GRANTED', 5, 66, 1),
+(411, '2026-01-25 15:25:15', 'GRANTED', 5, 66, 33),
+(412, '2026-01-25 15:25:15', 'GRANTED', 5, 66, 1),
+(413, '2026-01-25 15:25:16', 'GRANTED', 5, 66, 33),
+(414, '2026-01-25 15:25:16', 'GRANTED', 5, 66, 1),
+(415, '2026-01-25 15:25:16', 'GRANTED', 5, 66, 33),
+(416, '2026-01-25 15:25:16', 'GRANTED', 5, 66, 1),
+(417, '2026-01-25 15:25:17', 'GRANTED', 5, 66, 33),
+(418, '2026-01-25 15:25:44', 'GRANTED', 5, 66, 1),
+(419, '2026-02-21 17:33:53', 'GRANTED', 5, 66, 33),
+(420, '2026-02-26 17:33:07', 'GRANTED', 5, 66, 1),
+(421, '2026-02-26 17:40:46', 'GRANTED', 6, 66, 27),
+(422, '2026-02-26 18:11:58', 'GRANTED', 5, 64, 33),
+(423, '2026-02-26 18:12:07', 'GRANTED', 27, 64, 21),
+(424, '2026-02-26 18:12:41', 'GRANTED', 35, 67, 33),
+(425, '2026-02-26 18:15:17', 'GRANTED', 14, 67, 5),
+(426, '2026-02-26 18:30:30', 'GRANTED', 4, 67, 1),
+(427, '2026-02-26 18:30:33', 'GRANTED', 4, 67, 5),
+(428, '2026-02-26 18:30:46', 'GRANTED', 27, 64, 33),
+(429, '2026-02-26 18:30:48', 'GRANTED', 5, 64, 1),
+(430, '2026-02-26 18:30:49', 'GRANTED', 1, 64, 2),
+(431, '2026-02-26 18:30:57', 'GRANTED', 1, 64, 1),
+(432, '2026-02-26 18:30:59', 'GRANTED', 5, 64, 33),
+(433, '2026-02-26 18:31:02', 'GRANTED', 27, 64, 21),
+(434, '2026-02-26 18:31:04', 'GRANTED', 27, 64, 33),
+(435, '2026-02-26 18:31:06', 'GRANTED', 27, 64, 21),
+(436, '2026-02-26 18:31:07', 'GRANTED', 33, 64, 25),
+(437, '2026-02-26 18:31:20', 'GRANTED', 33, 64, 21),
+(438, '2026-02-26 18:33:32', 'GRANTED', 14, 67, 33),
+(439, '2026-02-26 18:33:33', 'LOW_LEVEL', 27, 67, 21),
+(440, '2026-02-26 18:33:37', 'GRANTED', 33, 64, 25),
+(441, '2026-02-26 18:34:00', 'GRANTED', 33, 64, 21),
+(442, '2026-02-26 18:34:02', 'GRANTED', 33, 64, 25),
+(443, '2026-02-26 18:34:07', 'GRANTED', 33, 64, 21),
+(444, '2026-02-26 18:34:09', 'GRANTED', 34, 64, 26),
+(445, '2026-02-26 18:34:11', 'GRANTED', 34, 64, 21),
+(446, '2026-02-26 18:34:12', 'GRANTED', 33, 64, 25),
+(447, '2026-02-26 18:34:32', 'GRANTED', 33, 64, 21),
+(448, '2026-02-26 18:34:33', 'GRANTED', 27, 64, 33),
+(449, '2026-02-26 18:34:34', 'GRANTED', 5, 64, 1),
+(450, '2026-02-26 18:34:36', 'GRANTED', 5, 64, 33),
+(451, '2026-02-26 18:34:36', 'GRANTED', 27, 64, 21),
+(452, '2026-02-26 18:34:37', 'GRANTED', 33, 64, 25),
+(453, '2026-02-26 18:34:50', 'GRANTED', 5, 67, 1),
+(454, '2026-02-26 18:34:54', 'GRANTED', 2, 67, 3),
+(455, '2026-02-26 18:34:58', 'GRANTED', 2, 67, 1),
+(456, '2026-02-26 18:35:39', 'GRANTED', 5, 67, 33),
+(457, '2026-02-26 18:35:40', 'GRANTED', 27, 67, 21),
+(458, '2026-02-26 18:43:44', 'GRANTED', 27, 67, 33),
+(459, '2026-02-26 18:43:48', 'GRANTED', 27, 67, 21),
+(460, '2026-02-26 18:44:13', 'GRANTED', 27, 67, 33),
+(461, '2026-02-26 18:44:15', 'GRANTED', 14, 67, 5),
+(462, '2026-02-26 18:44:20', 'GRANTED', 4, 67, 1),
+(463, '2026-02-26 18:45:04', 'GRANTED', 6, 67, 27),
+(464, '2026-02-26 18:46:21', 'GRANTED', 35, 67, 33),
+(465, '2026-02-26 18:46:23', 'GRANTED', 27, 67, 21),
+(466, '2026-02-26 18:48:32', 'GRANTED', 27, 67, 33),
+(467, '2026-02-26 18:48:34', 'GRANTED', 35, 67, 27),
+(468, '2026-02-26 18:48:43', 'GRANTED', 35, 67, 33),
+(469, '2026-02-26 18:48:44', 'GRANTED', 27, 67, 21),
+(470, '2026-02-26 18:48:46', 'GRANTED', 27, 67, 33),
+(471, '2026-02-26 18:48:46', 'GRANTED', 35, 67, 27),
+(472, '2026-02-26 18:48:50', 'GRANTED', 35, 67, 33),
+(473, '2026-02-26 18:48:50', 'GRANTED', 27, 67, 21),
+(474, '2026-02-26 18:49:17', 'GRANTED', 33, 64, 21),
+(475, '2026-02-26 18:49:19', 'GRANTED', 27, 64, 33),
+(476, '2026-02-26 18:49:21', 'GRANTED', 5, 64, 1),
+(477, '2026-02-26 18:49:49', 'GRANTED', 5, 64, 33),
+(478, '2026-02-26 18:49:49', 'GRANTED', 27, 64, 21),
+(479, '2026-02-26 18:49:50', 'GRANTED', 33, 64, 25),
+(480, '2026-02-26 18:54:09', 'GRANTED', 33, 64, 21),
+(481, '2026-02-26 18:54:10', 'GRANTED', 27, 64, 33),
+(482, '2026-02-26 18:54:19', 'GRANTED', 27, 64, 21),
+(483, '2026-02-26 18:54:20', 'GRANTED', 33, 64, 25),
+(484, '2026-02-26 18:54:29', 'GRANTED', 27, 67, 33),
+(485, '2026-02-26 18:54:31', 'GRANTED', 5, 67, 1),
+(486, '2026-02-26 18:55:21', 'EXPIRED', 5, 67, 33),
+(487, '2026-02-26 18:57:32', 'GRANTED', 5, 67, 33),
+(488, '2026-02-26 18:34:55', 'AUTO_EXIT', 5, 66, 1),
+(489, '2026-02-26 18:36:40', 'AUTO_EXIT', 5, 66, 1),
+(490, '2026-02-26 18:36:40', 'AUTO_EXIT', 5, 66, 1),
+(491, '2026-02-26 18:36:40', 'AUTO_EXIT', 5, 66, 1),
+(492, '2026-02-26 18:36:41', 'AUTO_EXIT', 5, 66, 1),
+(493, '2026-02-26 18:36:41', 'AUTO_EXIT', 5, 66, 1),
+(494, '2026-02-26 18:36:41', 'AUTO_EXIT', 5, 66, 1),
+(495, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(496, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(497, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(498, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(499, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(500, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(501, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(502, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(503, '2026-02-26 18:36:42', 'AUTO_EXIT', 5, 66, 1),
+(504, '2026-02-26 18:37:47', 'AUTO_EXIT', 5, 66, 1),
+(505, '2026-02-26 18:38:05', 'AUTO_EXIT', 5, 66, 1),
+(506, '2026-02-26 18:38:05', 'AUTO_EXIT', 5, 66, 1),
+(507, '2026-02-26 18:38:05', 'AUTO_EXIT', 5, 66, 1),
+(508, '2026-02-26 18:38:05', 'AUTO_EXIT', 5, 66, 1),
+(509, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(510, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(511, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(512, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(513, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(514, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(515, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(516, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(517, '2026-02-26 18:38:06', 'AUTO_EXIT', 5, 66, 1),
+(518, '2026-02-26 18:38:07', 'AUTO_EXIT', 5, 66, 1),
+(519, '2026-02-26 18:38:07', 'AUTO_EXIT', 5, 66, 1),
+(520, '2026-02-26 18:38:07', 'AUTO_EXIT', 5, 66, 1),
+(521, '2026-02-26 18:38:07', 'AUTO_EXIT', 5, 66, 1),
+(522, '2026-02-26 18:38:07', 'AUTO_EXIT', 5, 66, 1),
+(523, '2026-02-26 18:38:11', 'AUTO_EXIT', 5, 66, 1),
+(524, '2026-02-26 18:38:11', 'AUTO_EXIT', 5, 66, 1),
+(525, '2026-02-26 18:38:11', 'AUTO_EXIT', 5, 66, 1),
+(526, '2026-02-26 18:38:13', 'AUTO_EXIT', 5, 66, 1),
+(527, '2026-02-26 18:38:13', 'AUTO_EXIT', 5, 66, 1),
+(528, '2026-02-26 18:38:13', 'AUTO_EXIT', 5, 66, 1),
+(529, '2026-02-26 18:38:15', 'AUTO_EXIT', 5, 66, 1),
+(530, '2026-02-26 18:38:15', 'AUTO_EXIT', 5, 66, 1),
+(531, '2026-02-26 18:38:15', 'AUTO_EXIT', 5, 66, 1),
+(532, '2026-02-26 18:38:15', 'AUTO_EXIT', 5, 66, 1),
+(533, '2026-02-26 18:38:15', 'AUTO_EXIT', 5, 66, 1),
+(534, '2026-02-26 18:38:16', 'AUTO_EXIT', 5, 66, 1),
+(535, '2026-02-26 18:38:16', 'AUTO_EXIT', 5, 66, 1),
+(536, '2026-02-26 18:38:16', 'AUTO_EXIT', 5, 66, 1),
+(537, '2026-02-26 18:38:16', 'AUTO_EXIT', 5, 66, 1),
+(538, '2026-02-26 18:38:16', 'AUTO_EXIT', 5, 66, 1),
+(539, '2026-02-26 18:38:16', 'AUTO_EXIT', 5, 66, 1),
+(540, '2026-02-26 18:38:16', 'AUTO_EXIT', 5, 66, 1),
+(541, '2026-02-26 18:38:19', 'AUTO_EXIT', 5, 66, 1),
+(542, '2026-02-26 18:38:20', 'AUTO_EXIT', 5, 66, 1),
+(543, '2026-02-26 18:38:20', 'AUTO_EXIT', 5, 66, 1),
+(544, '2026-02-26 18:38:20', 'AUTO_EXIT', 5, 66, 1),
+(545, '2026-02-26 18:38:21', 'AUTO_EXIT', 5, 66, 1),
+(546, '2026-02-26 18:38:21', 'AUTO_EXIT', 5, 66, 1),
+(547, '2026-02-26 18:38:21', 'AUTO_EXIT', 5, 66, 1),
+(548, '2026-02-26 18:38:22', 'AUTO_EXIT', 5, 66, 1),
+(549, '2026-02-26 18:38:22', 'AUTO_EXIT', 5, 66, 1),
+(550, '2026-02-26 18:38:22', 'AUTO_EXIT', 5, 66, 1),
+(551, '2026-02-26 18:38:45', 'AUTO_EXIT', 5, 66, 1),
+(552, '2026-02-26 18:38:45', 'AUTO_EXIT', 5, 66, 1),
+(553, '2026-02-26 18:38:45', 'AUTO_EXIT', 5, 66, 1),
+(554, '2026-02-26 18:38:45', 'AUTO_EXIT', 5, 66, 1),
+(555, '2026-02-26 18:38:49', 'AUTO_EXIT', 5, 66, 1),
+(556, '2026-02-26 18:38:49', 'AUTO_EXIT', 5, 66, 1),
+(557, '2026-02-26 18:39:01', 'AUTO_EXIT', 5, 66, 1),
+(558, '2026-02-26 18:39:01', 'AUTO_EXIT', 5, 66, 1),
+(559, '2026-02-26 18:39:01', 'AUTO_EXIT', 5, 66, 1),
+(560, '2026-02-26 18:39:01', 'AUTO_EXIT', 5, 66, 1),
+(561, '2026-02-26 18:40:06', 'AUTO_EXIT', 5, 66, 1),
+(562, '2026-02-26 18:40:36', 'AUTO_EXIT', 5, 66, 1),
+(563, '2026-02-26 18:40:36', 'AUTO_EXIT', 5, 67, 1),
+(564, '2026-02-26 19:40:36', 'OFF_HOURS', 5, 67, 1),
+(565, '2026-02-26 18:40:41', 'AUTO_EXIT', 5, 66, 1),
+(566, '2026-02-26 18:40:41', 'AUTO_EXIT', 5, 67, 1),
+(567, '2026-02-26 18:40:41', 'AUTO_EXIT', 5, 66, 1),
+(568, '2026-02-26 18:40:41', 'AUTO_EXIT', 5, 67, 1),
+(569, '2026-02-26 18:40:44', 'AUTO_EXIT', 5, 66, 1),
+(570, '2026-02-26 18:40:44', 'AUTO_EXIT', 5, 67, 1),
+(571, '2026-02-26 19:40:44', 'OFF_HOURS', 21, 67, 15),
+(572, '2026-02-26 18:40:46', 'AUTO_EXIT', 5, 66, 1),
+(573, '2026-02-26 18:40:46', 'AUTO_EXIT', 5, 67, 1),
+(574, '2026-02-26 18:40:48', 'AUTO_EXIT', 5, 66, 1),
+(575, '2026-02-26 18:40:48', 'AUTO_EXIT', 5, 67, 1),
+(576, '2026-02-26 19:40:48', 'OFF_HOURS', 5, 67, 1),
+(577, '2026-02-26 18:41:11', 'AUTO_EXIT', 5, 66, 1),
+(578, '2026-02-26 18:41:11', 'AUTO_EXIT', 5, 67, 1),
+(579, '2026-02-26 18:42:16', 'AUTO_EXIT', 5, 66, 1),
+(580, '2026-02-26 18:42:16', 'AUTO_EXIT', 5, 67, 1),
+(581, '2026-02-26 18:43:21', 'GRANTED', 5, 66, 1),
+(582, '2026-02-26 18:43:21', 'GRANTED', 5, 67, 1),
+(583, '2026-02-26 19:43:35', 'OFF_HOURS', 5, 67, 33),
+(584, '2026-02-26 19:43:53', 'OFF_HOURS', 5, 67, 33),
+(585, '2026-02-26 19:45:22', 'OFF_HOURS', 5, 67, 33),
+(586, '2026-02-26 19:46:04', 'GRANTED', 5, 67, 33),
+(587, '2026-02-26 18:46:34', 'GRANTED', 5, 67, 1),
+(588, '2026-02-26 19:48:04', 'GRANTED', 5, 67, 33),
+(589, '2026-02-26 19:48:06', 'GRANTED', 35, 67, 27),
+(590, '2026-02-26 19:48:11', 'GRANTED', 6, 67, 1),
+(591, '2026-02-26 19:48:17', 'GRANTED', 33, 64, 21),
+(592, '2026-02-26 19:48:18', 'GRANTED', 27, 64, 33),
+(593, '2026-02-26 19:48:20', 'GRANTED', 5, 64, 1),
+(594, '2026-02-26 19:48:21', 'GRANTED', 4, 64, 5),
+(595, '2026-02-26 19:48:32', 'GRANTED', 14, 64, 33),
+(596, '2026-02-26 19:48:32', 'GRANTED', 27, 64, 21),
+(597, '2026-02-26 19:48:33', 'GRANTED', 33, 64, 25),
+(598, '2026-02-26 20:06:29', 'OFF_HOURS', 5, 67, 33),
+(599, '2026-02-26 20:06:34', 'OFF_HOURS', 5, 67, 33),
+(600, '2026-02-26 20:07:25', 'GRANTED', 33, 64, 21),
+(601, '2026-02-26 20:07:25', 'GRANTED', 27, 64, 33),
+(602, '2026-02-26 20:07:26', 'GRANTED', 5, 64, 1),
+(603, '2026-02-26 20:07:26', 'GRANTED', 5, 64, 33),
+(604, '2026-02-26 20:07:27', 'GRANTED', 27, 64, 21),
+(605, '2026-02-26 20:07:27', 'GRANTED', 33, 64, 25),
+(606, '2026-02-28 12:34:32', 'GRANTED', 5, 66, 33),
+(607, '2026-02-28 12:34:32', 'GRANTED', 5, 66, 1),
+(608, '2026-02-28 12:55:19', 'GRANTED', 4, 69, 5),
+(609, '2026-02-28 12:55:20', 'GRANTED', 8, 69, 7),
+(610, '2026-02-28 12:56:13', 'GRANTED', 8, 69, 5),
+(611, '2026-02-28 12:56:24', 'GRANTED', 8, 69, 7),
+(612, '2026-02-28 12:58:07', 'GRANTED', 8, 69, 5),
+(613, '2026-02-28 12:58:10', 'GRANTED', 8, 69, 7),
+(614, '2026-02-28 12:59:36', 'GRANTED', 8, 69, 5),
+(615, '2026-02-28 12:59:41', 'GRANTED', 15, 69, 11),
+(616, '2026-02-28 12:59:43', 'GRANTED', 15, 69, 5),
+(617, '2026-02-28 12:59:43', 'GRANTED', 9, 69, 8),
+(618, '2026-02-28 12:59:48', 'GRANTED', 9, 69, 5),
+(619, '2026-02-28 12:59:50', 'GRANTED', 14, 69, 33),
+(620, '2026-02-28 13:09:52', 'GRANTED', 5, 69, 1),
+(621, '2026-02-28 14:56:15', 'GRANTED', 33, 64, 21),
+(622, '2026-02-28 14:56:16', 'GRANTED', 29, 64, 22),
+(623, '2026-02-28 14:56:45', 'GRANTED', 29, 64, 21),
+(624, '2026-02-28 14:57:23', 'GRANTED', 33, 64, 25),
+(625, '2026-02-28 16:59:11', 'GRANTED', 5, 69, 33),
+(626, '2026-02-28 17:06:39', 'OFF_HOURS', 27, 69, 21),
+(627, '2026-02-28 17:06:44', 'OFF_HOURS', 27, 69, 21),
+(628, '2026-02-28 17:06:45', 'OFF_HOURS', 21, 69, 15),
+(629, '2026-02-28 17:06:47', 'OFF_HOURS', 20, 69, 11),
+(630, '2026-02-28 17:07:25', 'GRANTED', 4, 67, 5),
+(631, '2026-02-28 17:07:29', 'GRANTED', 14, 67, 33),
+(632, '2026-02-28 17:07:32', 'GRANTED', 14, 67, 5),
+(633, '2026-02-28 17:07:37', 'GRANTED', 8, 67, 7),
+(634, '2026-02-28 17:07:39', 'GRANTED', 8, 67, 5),
+(635, '2026-02-28 17:07:41', 'GRANTED', 11, 67, 9),
+(636, '2026-02-28 17:07:43', 'GRANTED', 11, 67, 5),
+(637, '2026-02-28 17:07:45', 'GRANTED', 14, 67, 33),
+(638, '2026-02-28 17:07:47', 'GRANTED', 27, 67, 21),
+(639, '2026-02-28 17:07:51', 'GRANTED', 27, 67, 33),
+(640, '2026-02-28 17:07:51', 'LOW_LEVEL', 21, 67, 15),
+(641, '2026-02-28 17:07:55', 'GRANTED', 20, 67, 11),
+(642, '2026-02-28 17:07:56', 'GRANTED', 19, 67, 14),
+(643, '2026-02-28 17:08:00', 'GRANTED', 19, 67, 11),
+(644, '2026-02-28 17:08:01', 'GRANTED', 18, 67, 13),
+(645, '2026-02-28 17:08:02', 'GRANTED', 18, 67, 11),
+(646, '2026-02-28 17:08:03', 'GRANTED', 17, 67, 12),
+(647, '2026-02-28 17:08:04', 'GRANTED', 17, 67, 11),
+(648, '2026-02-28 17:08:04', 'GRANTED', 20, 67, 33),
+(649, '2026-02-28 17:08:06', 'GRANTED', 5, 67, 1),
+(650, '2026-02-28 17:08:06', 'GRANTED', 3, 67, 4),
+(651, '2026-02-28 17:08:13', 'GRANTED', 3, 67, 1),
+(652, '2026-02-28 17:08:14', 'GRANTED', 2, 67, 3),
+(653, '2026-02-28 17:10:00', 'GRANTED', 2, 67, 1),
+(654, '2026-02-28 17:10:01', 'GRANTED', 5, 67, 33),
+(655, '2026-02-28 17:21:45', 'GRANTED', 35, 67, 27),
+(656, '2026-02-28 17:21:46', 'GRANTED', 6, 67, 1),
+(657, '2026-02-28 17:21:47', 'GRANTED', 4, 67, 5),
+(658, '2026-02-28 17:29:00', 'GRANTED', 4, 67, 1),
+(659, '2026-02-28 17:29:02', 'GRANTED', 2, 67, 3),
+(660, '2026-02-28 17:29:12', 'GRANTED', 2, 67, 1),
+(661, '2026-02-28 17:29:13', 'GRANTED', 4, 67, 5),
+(662, '2026-02-28 17:29:14', 'GRANTED', 8, 67, 7),
+(663, '2026-02-28 17:29:17', 'GRANTED', 8, 67, 5),
+(664, '2026-02-28 17:29:19', 'GRANTED', 13, 67, 10),
+(665, '2026-02-28 17:29:22', 'GRANTED', 13, 67, 5),
+(666, '2026-02-28 17:29:24', 'GRANTED', 11, 67, 9),
+(667, '2026-02-28 17:29:47', 'GRANTED', 11, 67, 5),
+(668, '2026-02-28 17:29:48', 'GRANTED', 11, 67, 9),
+(669, '2026-02-28 17:38:24', 'GRANTED', 11, 67, 5),
+(670, '2026-02-28 17:38:28', 'GRANTED', 11, 67, 9),
+(671, '2026-02-28 17:40:08', 'GRANTED', 11, 67, 5),
+(672, '2026-02-28 17:40:12', 'GRANTED', 14, 67, 33),
+(673, '2026-02-28 17:40:55', 'GRANTED', 20, 67, 11),
+(674, '2026-02-28 17:42:08', 'GRANTED', 20, 67, 33),
+(675, '2026-02-28 17:42:10', 'DENIED', 14, 67, 5),
+(676, '2026-02-28 17:42:10', 'DENIED', 14, 67, 5),
+(677, '2026-02-28 17:42:18', 'DENIED', 14, 67, 5),
+(678, '2026-02-28 17:42:18', 'DENIED', 14, 67, 5),
+(679, '2026-02-28 17:44:17', 'LOW_LEVEL', 21, 67, 15),
+(680, '2026-02-28 17:46:49', 'GRANTED', 14, 67, 5),
+(681, '2026-02-28 17:46:56', 'DENIED', 14, 67, 33),
+(682, '2026-02-28 17:46:56', 'DENIED', 14, 67, 33),
+(683, '2026-02-28 17:48:23', 'DENIED', 14, 67, 33),
+(684, '2026-02-28 17:48:23', 'DENIED', 14, 67, 33),
+(685, '2026-02-28 17:48:34', 'GRANTED', 4, 67, 1),
+(686, '2026-02-28 17:48:35', 'GRANTED', 5, 67, 33),
+(687, '2026-02-28 17:48:36', 'GRANTED', 27, 67, 21),
+(688, '2026-02-28 17:48:39', 'GRANTED', 32, 67, 24),
+(689, '2026-02-28 17:48:45', 'GRANTED', 32, 67, 21),
+(690, '2026-02-28 17:48:54', 'DENIED', 32, 67, 24),
+(691, '2026-02-28 17:48:54', 'DENIED', 32, 67, 24),
+(692, '2026-02-28 17:49:06', 'DENIED', 29, 67, 22),
+(693, '2026-02-28 17:49:06', 'DENIED', 29, 67, 22),
+(694, '2026-02-28 17:49:08', 'GRANTED', 34, 67, 26),
+(695, '2026-02-28 17:49:09', 'GRANTED', 34, 67, 21),
+(696, '2026-02-28 17:49:10', 'DENIED', 29, 67, 22),
+(697, '2026-02-28 17:49:10', 'DENIED', 29, 67, 22),
+(698, '2026-02-28 17:51:23', 'GRANTED', 27, 67, 33),
+(699, '2026-02-28 17:51:24', 'GRANTED', 5, 67, 1),
+(700, '2026-02-28 17:51:26', 'GRANTED', 5, 67, 33),
+(701, '2026-02-28 17:52:13', 'GRANTED', 5, 67, 1),
+(702, '2026-02-28 17:52:14', 'GRANTED', 4, 67, 5),
+(703, '2026-02-28 17:52:19', 'DENIED', 11, 67, 9),
+(704, '2026-02-28 17:52:19', 'DENIED', 11, 67, 9),
+(705, '2026-02-28 17:53:25', 'GRANTED', 11, 67, 9),
+(706, '2026-02-28 17:53:54', 'OFF_HOURS', 5, 69, 1),
+(707, '2026-02-28 17:54:07', 'OFF_HOURS', 5, 69, 1),
+(708, '2026-02-28 17:57:23', 'GRANTED', 10, 67, 5),
+(709, '2026-02-28 17:57:24', 'GRANTED', 10, 67, 9),
+(710, '2026-02-28 17:57:28', 'GRANTED', 10, 67, 5),
+(711, '2026-02-28 17:57:33', 'DENIED', 10, 67, 9),
+(712, '2026-02-28 17:57:36', 'GRANTED', 11, 67, 9),
+(713, '2026-02-28 18:04:14', 'OFF_HOURS', 5, 69, 1),
+(714, '2026-02-28 18:04:22', 'OFF_HOURS', 14, 69, 5),
+(715, '2026-03-04 17:13:08', 'DENIED', 10, 67, 5),
+(716, '2026-03-04 17:13:18', 'GRANTED', 11, 67, 5),
+(717, '2026-03-04 17:13:27', 'GRANTED', 15, 67, 11),
+(718, '2026-03-04 17:13:29', 'GRANTED', 15, 67, 5),
+(719, '2026-03-04 17:13:32', 'GRANTED', 4, 67, 1),
+(720, '2026-03-04 17:13:33', 'REQUIRED_MAINTENANCE', 5, 67, 33),
+(721, '2026-03-04 17:14:47', 'GRANTED', 6, 67, 27),
+(722, '2026-03-04 17:14:48', 'GRANTED', 35, 67, 33),
+(723, '2026-03-04 17:14:49', 'REQUIRED_MAINTENANCE', 5, 67, 1),
+(724, '2026-03-04 17:14:53', 'LOW_LEVEL', 21, 67, 15);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `AdminLogs`
+--
+
+CREATE TABLE `AdminLogs` (
+  `IdLog` int NOT NULL,
+  `Description` varchar(128) NOT NULL,
+  `DateTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `AdminLogs`
+--
+
+INSERT INTO `AdminLogs` (`IdLog`, `Description`, `DateTime`) VALUES
+(5, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente nefeyi8884@1200b.com al livello 2', '2026-01-24 11:12:05'),
+(6, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente nefeyi8884@1200b.com al livello 1', '2026-01-24 11:20:40'),
+(7, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente nefeyi8884@1200b.com al livello 2', '2026-01-24 11:20:44'),
+(8, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente nefeyi8884@1200b.com al livello 1', '2026-01-24 11:21:19'),
+(9, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente nefeyi8884@1200b.com al livello 2', '2026-01-24 11:21:22'),
+(10, 'Pianificato Task (Maintenance) ID 2 per Dipendente 59 (2026-01-23 14:04:00 - 2026-01-25 14:04:00)', '2026-01-24 13:04:44'),
+(11, 'Task 2 (Maintenance) completata da utente.', '2026-01-24 13:06:33'),
+(12, 'Pianificato Task (Maintenance) ID 3 per Dipendente 59 (2026-01-24 14:07:00 - 2026-01-25 14:10:00)', '2026-01-24 13:10:15'),
+(13, 'Task 3 (Maintenance) completata da utente.', '2026-01-24 16:46:51'),
+(14, 'Pianificato Task (Maintenance) ID 4 per Dipendente 59 (2026-01-24 17:57:00 - 2026-01-26 17:57:00)', '2026-01-24 16:57:47'),
+(15, 'Task 4 (Maintenance) completata da utente.', '2026-01-24 17:02:52'),
+(16, 'Pianificato Task (Maintenance) ID 5 per Dipendente 59 (2026-01-24 18:04:00 - 2026-01-24 20:04:00)', '2026-01-24 17:04:24'),
+(17, 'Task 5 (Maintenance) completata da utente.', '2026-01-24 18:12:34'),
+(18, 'Pianificato Task (Maintenance) ID 6 per Dipendente 59 (2026-01-24 18:13:00 - 2026-01-25 18:13:00)', '2026-01-24 18:13:42'),
+(19, 'Task 6 (Maintenance) completata da utente.', '2026-01-24 18:33:56'),
+(20, 'Pianificato Task (Maintenance) ID 7 per Dipendente 59 (2026-01-24 18:34:00 - 2026-01-24 18:36:00)', '2026-01-24 18:34:55'),
+(21, 'Task 7 (Maintenance) completata da utente.', '2026-01-24 18:36:37'),
+(22, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente hojasih286@gxuzi.com al livello 2', '2026-01-24 18:38:09'),
+(23, 'Pianificato Task (Maintenance) ID 8 per Dipendente 59 (2026-01-24 18:39:00 - 2026-01-24 18:43:00)', '2026-01-24 18:39:14'),
+(24, 'Pianificato Task (Restock) ID 10 per Dipendente 60 (2026-01-24 18:43:00 - 2026-01-24 18:48:00)', '2026-01-24 18:44:06'),
+(25, 'Task 10 (Restock) completata da utente.', '2026-01-24 18:45:43'),
+(26, 'Pianificato Task (Restock) ID 11 per Dipendente 60 (2026-01-24 18:46:00 - 2026-01-24 18:38:00)', '2026-01-24 18:47:05'),
+(27, 'Pianificato Task (Restock) ID 12 per Dipendente 60 (2026-01-24 18:47:00 - 2026-01-24 18:51:00)', '2026-01-24 18:47:41'),
+(28, 'Task 12 (Restock) completata da utente.', '2026-01-24 18:47:46'),
+(29, 'Task 8 (Maintenance) completata da utente.', '2026-01-24 19:27:18'),
+(30, 'Pianificato Task (Maintenance) ID 13 per Dipendente 59 (2026-01-24 19:58:00 - 2026-01-24 23:02:00)', '2026-01-24 19:59:04'),
+(31, 'Task 13 (Maintenance) completata da utente.', '2026-01-24 19:59:09'),
+(32, 'Pianificato Task (Restock) ID 14 per Dipendente 60 (2026-01-25 12:39:00 - 2026-01-29 12:48:00)', '2026-01-25 11:48:54'),
+(33, 'Task 14 (Restock) completata da utente.', '2026-01-25 11:49:09'),
+(34, 'Pianificato Task (Restock) ID 15 per Dipendente 60 (2026-01-25 14:30:00 - 2026-01-29 14:31:00)', '2026-01-25 13:31:02'),
+(35, 'Pianificato Task (Restock) ID 16 per Dipendente 60 (2026-01-25 14:31:00 - 2026-01-23 14:31:00)', '2026-01-25 13:31:15'),
+(36, 'Task 15 (Restock) completata da utente.', '2026-01-25 13:34:05'),
+(37, 'Task 11 segnalata come SCADUTA dal dipendente.', '2026-01-25 13:59:24'),
+(38, 'Task 11 segnalata come SCADUTA dal dipendente hojasih286@gxuzi.com.', '2026-01-25 14:02:40'),
+(39, 'Task 11 resettata da admin. Richiesta tornata disponibile.', '2026-01-25 14:11:49'),
+(40, 'Task 11 segnalata come SCADUTA dal dipendente hojasih286@gxuzi.com.', '2026-01-25 14:12:35'),
+(41, 'Admin ha riassegnato Task Scaduta 11 -> Nuova Task 17 a Emp 60', '2026-01-25 14:16:52'),
+(42, 'Task 17 (Restock) completata da utente.', '2026-01-25 14:18:37'),
+(43, 'Task 16 segnalata come SCADUTA dal dipendente hojasih286@gxuzi.com.', '2026-01-25 14:19:05'),
+(44, 'Admin ha riassegnato Task Scaduta 16 -> Nuova Task 18 a Emp 60', '2026-01-25 14:22:28'),
+(45, 'Task 18 (Restock) completata da utente.', '2026-01-25 14:22:43'),
+(46, 'Pianificato Task (Maintenance) ID 19 per Dipendente 59 (2026-01-25 15:26:00 - 2026-01-25 15:27:00)', '2026-01-25 14:26:33'),
+(47, 'Task 19 segnalata come SCADUTA dal dipendente nefeyi8884@1200b.com.', '2026-01-25 14:27:05'),
+(48, 'Admin ha riassegnato Task Scaduta 19 -> Nuova Task 20 a Emp 59', '2026-01-25 14:27:32'),
+(49, 'Task 20 (Maintenance) completata da utente.', '2026-01-25 14:27:37'),
+(50, 'Pianificato Task (Maintenance) ID 21 per Dipendente 59 (2026-02-27 12:20:00 - 2026-03-01 12:20:00)', '2026-02-28 11:20:24'),
+(51, 'Task 21 (Maintenance) completata da utente.', '2026-02-28 11:25:03'),
+(52, 'Pianificato Task (Restock) ID 22 per Dipendente 60 (2026-02-10 12:29:00 - 2026-03-01 12:29:00)', '2026-02-28 11:30:06'),
+(53, 'Pianificato Task (Maintenance) ID 23 per Dipendente 59 (2026-02-21 12:34:00 - 2026-03-02 12:34:00)', '2026-02-28 11:35:03'),
+(54, 'Task 23 (Maintenance) completata da utente.', '2026-02-28 11:35:06'),
+(55, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente jisawi2413@pazuric.com al livello 2', '2026-02-28 11:54:53');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Badges`
+--
+
+CREATE TABLE `Badges` (
+  `IdBadge` int NOT NULL,
+  `DateOfIssue` datetime NOT NULL,
+  `ExpirationDate` datetime DEFAULT NULL,
+  `BadgeLevel` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Badges`
+--
+
+INSERT INTO `Badges` (`IdBadge`, `DateOfIssue`, `ExpirationDate`, `BadgeLevel`) VALUES
+(64, '2026-01-24 11:25:50', '2027-01-24 11:25:50', 4),
+(65, '2026-01-24 11:40:22', '2027-01-24 11:40:22', 1),
+(66, '2026-01-24 12:11:23', '2027-01-24 12:11:23', 2),
+(67, '2026-01-24 18:37:39', '2027-02-26 19:01:20', 3),
+(68, '2026-01-24 18:53:28', '2027-01-24 18:53:28', 1),
+(69, '2026-02-28 12:44:15', '2027-02-28 12:44:15', 2);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `EmergencyEvents`
+--
+
+CREATE TABLE `EmergencyEvents` (
+  `IdEvent` int NOT NULL,
+  `StartTime` timestamp NOT NULL,
+  `EndTime` timestamp NOT NULL,
+  `Type` varchar(128) NOT NULL,
+  `IdSector` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Employees`
+--
+
+CREATE TABLE `Employees` (
+  `IdEmployee` int NOT NULL,
+  `IdRole` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Employees`
+--
+
+INSERT INTO `Employees` (`IdEmployee`, `IdRole`) VALUES
+(57, 1),
+(59, 2),
+(60, 3),
+(62, 4);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Gates`
+--
+
+CREATE TABLE `Gates` (
+  `IdGate` int NOT NULL,
+  `SecurityLevel` int NOT NULL,
+  `Wear` int NOT NULL,
+  `IdSectorA` int NOT NULL,
+  `IdSectorB` int NOT NULL,
+  `IsLocked` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Gates`
+--
+
+INSERT INTO `Gates` (`IdGate`, `SecurityLevel`, `Wear`, `IdSectorA`, `IdSectorB`, `IsLocked`) VALUES
+(1, 3, 2, 1, 2, 0),
+(2, 1, 6, 1, 3, 0),
+(3, 1, 2, 1, 4, 0),
+(4, 2, 15, 1, 5, 0),
+(5, 1, 34, 1, 33, 0),
+(6, 1, 8, 1, 27, 0),
+(7, 2, 0, 5, 6, 0),
+(8, 2, 10, 5, 7, 0),
+(9, 2, 2, 5, 8, 0),
+(10, 2, 3, 5, 9, 1),
+(11, 2, 11, 5, 9, 0),
+(12, 2, 0, 5, 10, 0),
+(13, 2, 2, 5, 10, 0),
+(14, 2, 13, 5, 33, 0),
+(15, 2, 4, 5, 11, 0),
+(16, 2, 0, 11, 12, 0),
+(17, 2, 2, 11, 12, 0),
+(18, 2, 2, 11, 13, 0),
+(19, 2, 2, 11, 14, 0),
+(20, 2, 4, 11, 33, 0),
+(21, 4, 0, 15, 33, 0),
+(22, 4, 0, 15, 16, 0),
+(23, 4, 0, 15, 17, 0),
+(24, 4, 0, 15, 18, 0),
+(25, 4, 0, 18, 19, 0),
+(26, 4, 0, 15, 20, 0),
+(27, 3, 29, 21, 33, 0),
+(28, 3, 0, 21, 22, 0),
+(29, 3, 2, 21, 22, 0),
+(30, 3, 0, 21, 23, 0),
+(31, 3, 0, 21, 24, 0),
+(32, 3, 2, 21, 24, 0),
+(33, 3, 19, 21, 25, 0),
+(34, 3, 4, 21, 26, 0),
+(35, 1, 15, 27, 33, 0),
+(36, 2, 0, 27, 28, 0),
+(37, 1, 2, 27, 29, 0),
+(38, 1, 0, 27, 30, 0),
+(39, 1, 0, 27, 31, 0),
+(40, 1, 0, 27, 32, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Inventory`
+--
+
+CREATE TABLE `Inventory` (
+  `IdItem` int NOT NULL,
+  `Description` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `Quantity` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Inventory`
+--
+
+INSERT INTO `Inventory` (`IdItem`, `Description`, `Quantity`) VALUES
+(1, 'Componenti', 7),
+(2, 'Sostanze chimiche', 99);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `MaintenanceRequests`
+--
+
+CREATE TABLE `MaintenanceRequests` (
+  `IdRequest` int NOT NULL,
+  `Status` varchar(64) NOT NULL,
+  `Priority` varchar(64) NOT NULL,
+  `CreatedAt` timestamp NOT NULL,
+  `IdGate` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `MaintenanceRequests`
+--
+
+INSERT INTO `MaintenanceRequests` (`IdRequest`, `Status`, `Priority`, `CreatedAt`, `IdGate`) VALUES
+(13, 'Completed', 'Low', '2026-01-24 18:58:32', 5),
+(14, 'Completed', 'Low', '2026-01-25 14:25:44', 5),
+(15, 'Completed', 'Low', '2026-02-26 19:07:26', 5),
+(16, 'Completed', 'Medium', '2026-02-28 11:34:32', 5),
+(17, 'Pending', 'Low', '2026-02-28 16:51:26', 5);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `MaintenanceTasks`
+--
+
+CREATE TABLE `MaintenanceTasks` (
+  `IdTask` int NOT NULL,
+  `IdGate` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `MaintenanceTasks`
+--
+
+INSERT INTO `MaintenanceTasks` (`IdTask`, `IdGate`) VALUES
+(2, 5),
+(3, 5),
+(4, 5),
+(5, 5),
+(6, 5),
+(7, 5),
+(8, 5),
+(13, 5),
+(19, 5),
+(20, 5),
+(21, 5),
+(23, 5);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `RestockTasks`
+--
+
+CREATE TABLE `RestockTasks` (
+  `IdTask` int NOT NULL,
+  `IdItem` int NOT NULL,
+  `Quantity` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `RestockTasks`
+--
+
+INSERT INTO `RestockTasks` (`IdTask`, `IdItem`, `Quantity`) VALUES
+(10, 1, 4),
+(11, 1, 90),
+(12, 2, 90),
+(14, 1, 92),
+(15, 1, 10),
+(16, 1, 10),
+(17, 1, 90),
+(18, 1, 10),
+(22, 1, 20);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Sectors`
+--
+
+CREATE TABLE `Sectors` (
+  `IdSector` int NOT NULL,
+  `Description` varchar(128) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Sectors`
+--
+
+INSERT INTO `Sectors` (`IdSector`, `Description`) VALUES
+(1, 'Hall'),
+(2, 'Security office'),
+(3, 'Restrooms'),
+(4, 'Small meeting room'),
+(5, 'Hallway'),
+(6, 'Restrooms'),
+(7, 'Laboratory 1'),
+(8, 'Laboratory 2'),
+(9, 'Instrument room'),
+(10, 'Sample storage'),
+(11, 'Laboratory 3'),
+(12, 'Instrument room'),
+(13, 'Depot 1'),
+(14, 'Preparation room'),
+(15, 'Hallway'),
+(16, 'Restrooms'),
+(17, 'Manager lounge'),
+(18, 'Manager office'),
+(19, 'Manager restroom'),
+(20, 'Conference room A'),
+(21, 'Hallway'),
+(22, 'Server room'),
+(23, 'File storage'),
+(24, 'Break room'),
+(25, 'Monitoring Center'),
+(26, 'IT workshop'),
+(27, 'Offices'),
+(28, 'Offices'),
+(29, 'Restrooms'),
+(30, 'Conference room B'),
+(31, 'Break room'),
+(32, 'Printer room'),
+(33, 'Garden');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Shifts`
+--
+
+CREATE TABLE `Shifts` (
+  `IdRole` int NOT NULL,
+  `Role` varchar(64) NOT NULL,
+  `Start` time NOT NULL,
+  `End` time NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Shifts`
+--
+
+INSERT INTO `Shifts` (`IdRole`, `Role`, `Start`, `End`) VALUES
+(1, 'Amministratore', '00:00:00', '23:59:59'),
+(2, 'Tecnico', '09:00:00', '17:00:00'),
+(3, 'Magazziniere', '14:00:00', '20:00:00'),
+(4, 'Chimico', '09:00:00', '17:00:00'),
+(5, 'Sicurezza', '00:00:00', '23:59:59');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Tasks`
+--
+
+CREATE TABLE `Tasks` (
+  `IdTask` int NOT NULL,
+  `Type` varchar(128) NOT NULL,
+  `StartTime` timestamp NOT NULL,
+  `EndTime` timestamp NOT NULL,
+  `IdEmployee` int NOT NULL,
+  `Status` enum('Pending','In Progress','Completed','Expired','Cancelled') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'Pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Tasks`
+--
+
+INSERT INTO `Tasks` (`IdTask`, `Type`, `StartTime`, `EndTime`, `IdEmployee`, `Status`) VALUES
+(2, 'Maintenance', '2026-01-23 14:04:00', '2026-01-25 14:04:00', 59, 'Completed'),
+(3, 'Maintenance', '2026-01-24 14:07:00', '2026-01-25 14:10:00', 59, 'Completed'),
+(4, 'Maintenance', '2026-01-24 10:57:00', '2026-01-26 19:57:00', 59, 'Completed'),
+(5, 'Maintenance', '2026-01-24 16:04:00', '2026-01-25 20:04:00', 59, 'Completed'),
+(6, 'Maintenance', '2026-01-24 17:13:00', '2026-01-25 17:13:00', 59, 'Completed'),
+(7, 'Maintenance', '2026-01-24 17:34:00', '2026-01-24 17:38:00', 59, 'Completed'),
+(8, 'Maintenance', '2026-01-24 17:39:00', '2026-01-24 19:43:00', 59, 'Completed'),
+(10, 'Restock', '2026-01-24 17:43:00', '2026-01-24 17:48:00', 60, 'Completed'),
+(11, 'Restock', '2026-01-24 17:46:00', '2026-01-24 19:38:00', 60, 'Cancelled'),
+(12, 'Restock', '2026-01-24 17:47:00', '2026-01-24 17:51:00', 60, 'Completed'),
+(13, 'Maintenance', '2026-01-24 18:58:00', '2026-01-24 22:02:00', 59, 'Completed'),
+(14, 'Restock', '2026-01-25 12:39:00', '2026-01-29 12:48:00', 60, 'Completed'),
+(15, 'Restock', '2026-01-25 14:30:00', '2026-01-29 14:31:00', 60, 'Completed'),
+(16, 'Restock', '2026-01-25 14:31:00', '2026-01-23 14:31:00', 60, 'Cancelled'),
+(17, 'Restock', '2026-01-25 15:16:00', '2026-01-27 16:16:00', 60, 'Completed'),
+(18, 'Restock', '2026-01-25 15:22:00', '2026-01-29 16:22:00', 60, 'Completed'),
+(19, 'Maintenance', '2026-01-25 15:26:00', '2026-01-25 15:27:00', 59, 'Cancelled'),
+(20, 'Maintenance', '2026-01-25 15:27:00', '2026-01-25 16:27:00', 59, 'Completed'),
+(21, 'Maintenance', '2026-02-27 12:20:00', '2026-03-01 12:20:00', 59, 'Completed'),
+(22, 'Restock', '2026-02-10 12:29:00', '2026-03-01 12:29:00', 60, 'Pending'),
+(23, 'Maintenance', '2026-02-21 12:34:00', '2026-03-02 12:34:00', 59, 'Completed');
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Users`
+--
+
+CREATE TABLE `Users` (
+  `IdUser` int NOT NULL,
+  `Email` varchar(128) NOT NULL,
+  `Password` varchar(128) NOT NULL,
+  `Name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `Surname` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `DateBirth` date NOT NULL,
+  `IdBadge` int NOT NULL,
+  `is_verified` tinyint DEFAULT '0',
+  `token` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Users`
+--
+
+INSERT INTO `Users` (`IdUser`, `Email`, `Password`, `Name`, `Surname`, `DateBirth`, `IdBadge`, `is_verified`, `token`) VALUES
+(57, 'fabiochiarenza4@gmail.com', '$2y$10$FnlfHhHOK3AiFLiRyMLmU.gXr3pmyy3ljupOZds6TLz6hw86WNQV.', 'Fabio', 'Chiarenza', '2026-01-12', 64, 1, NULL),
+(58, 'antonio.trifiro05@gmail.com', '$2y$10$7KckJqmls/i.vWfz1PV0eeExwVtDYn.dOh1o98evJWu3z0xkvynA6', 'Antonio', 'Trifirò', '2026-01-01', 65, 1, NULL),
+(59, 'nefeyi8884@1200b.com', '$2y$10$tc0SXznlpLHD/CXf5YXTI.QP82XHi5rg6.TXtZjNqhSB5gEEp2QRy', 'Carmelo', 'Spia', '1990-03-13', 66, 1, NULL),
+(60, 'hojasih286@gxuzi.com', '$2y$10$UBwL0EjiGz5WyrSFj0jnQ.mku7roKm7f7.XN1FsMQB8W247H//Nri', 'Giuseppe', 'Pacco', '2001-09-11', 67, 1, NULL),
+(61, 'febatog441@coswz.com', '$2y$10$ExWPQQzY2oKxhH1l99NppO2W4.xrrprDmiCCD8zpDitWybMl8.jP.', 'Mattia', 'Schiavo Mai assunto', '2026-01-23', 68, 1, NULL),
+(62, 'jisawi2413@pazuric.com', '$2y$10$FTPONMkj1Jf7LnjcRNYqfujY/pQ7leY0PyIpR8QMNgOoPAL.3UgWu', 'Walter', 'Bianco', '1958-09-07', 69, 1, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `Warnings`
+--
+
+CREATE TABLE `Warnings` (
+  `IdWarning` int NOT NULL,
+  `Reason` varchar(128) NOT NULL,
+  `IdAccess` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `Warnings`
+--
+
+INSERT INTO `Warnings` (`IdWarning`, `Reason`, `IdAccess`) VALUES
+(1, 'Tentativo accesso non autorizzato: Livello insufficiente', 328),
+(2, 'Tentativo accesso non autorizzato: Livello insufficiente', 344),
+(3, 'Tentativo accesso non autorizzato: Livello insufficiente', 345),
+(4, 'Tentativo accesso non autorizzato: Livello insufficiente', 346),
+(5, 'Tentativo accesso non autorizzato: Livello insufficiente', 347),
+(6, 'Tentativo accesso non autorizzato: Livello insufficiente', 348),
+(7, 'Tentativo accesso non autorizzato: Livello insufficiente', 349),
+(8, 'Tentativo accesso non autorizzato: Livello insufficiente', 350),
+(9, 'Tentativo accesso non autorizzato: Livello insufficiente', 351),
+(10, 'Tentativo accesso non autorizzato: Livello insufficiente', 352),
+(11, 'Tentativo accesso non autorizzato: Livello insufficiente', 353),
+(12, 'Tentativo accesso non autorizzato: Livello insufficiente', 354),
+(13, 'Tentativo accesso non autorizzato: Livello insufficiente', 355),
+(14, 'Tentativo accesso non autorizzato: Livello insufficiente', 356),
+(15, 'Tentativo accesso non autorizzato: Livello insufficiente', 357),
+(16, 'Tentativo accesso non autorizzato: Livello insufficiente', 358),
+(17, 'Tentativo accesso non autorizzato: Livello insufficiente', 359),
+(18, 'Tentativo accesso non autorizzato: Livello insufficiente', 360),
+(19, 'Tentativo accesso non autorizzato: Livello insufficiente', 361),
+(20, 'Tentativo accesso non autorizzato: Livello insufficiente', 362),
+(21, 'Tentativo accesso non autorizzato: Livello insufficiente', 363),
+(22, 'Tentativo accesso non autorizzato: Livello insufficiente', 364),
+(23, 'Tentativo accesso non autorizzato: Livello insufficiente', 365),
+(24, 'Tentativo accesso non autorizzato: Livello insufficiente', 366),
+(25, 'Tentativo accesso non autorizzato: Livello insufficiente', 367),
+(26, 'Tentativo accesso non autorizzato: Livello insufficiente', 439),
+(27, 'Uscita Automatica: +30min dalla fine del turno', 488),
+(28, 'Uscita Automatica: +30min dalla fine del turno', 489),
+(29, 'Uscita Automatica: +30min dalla fine del turno', 490),
+(30, 'Uscita Automatica: +30min dalla fine del turno', 491),
+(31, 'Uscita Automatica: +30min dalla fine del turno', 492),
+(32, 'Uscita Automatica: +30min dalla fine del turno', 493),
+(33, 'Uscita Automatica: +30min dalla fine del turno', 494),
+(34, 'Uscita Automatica: +30min dalla fine del turno', 495),
+(35, 'Uscita Automatica: +30min dalla fine del turno', 496),
+(36, 'Uscita Automatica: +30min dalla fine del turno', 497),
+(37, 'Uscita Automatica: +30min dalla fine del turno', 498),
+(38, 'Uscita Automatica: +30min dalla fine del turno', 499),
+(39, 'Uscita Automatica: +30min dalla fine del turno', 500),
+(40, 'Uscita Automatica: +30min dalla fine del turno', 501),
+(41, 'Uscita Automatica: +30min dalla fine del turno', 502),
+(42, 'Uscita Automatica: +30min dalla fine del turno', 503),
+(43, 'Uscita Automatica: +30min dalla fine del turno', 504),
+(44, 'Uscita Automatica: +30min dalla fine del turno', 505),
+(45, 'Uscita Automatica: +30min dalla fine del turno', 506),
+(46, 'Uscita Automatica: +30min dalla fine del turno', 507),
+(47, 'Uscita Automatica: +30min dalla fine del turno', 508),
+(48, 'Uscita Automatica: +30min dalla fine del turno', 509),
+(49, 'Uscita Automatica: +30min dalla fine del turno', 510),
+(50, 'Uscita Automatica: +30min dalla fine del turno', 511),
+(51, 'Uscita Automatica: +30min dalla fine del turno', 512),
+(52, 'Uscita Automatica: +30min dalla fine del turno', 513),
+(53, 'Uscita Automatica: +30min dalla fine del turno', 514),
+(54, 'Uscita Automatica: +30min dalla fine del turno', 515),
+(55, 'Uscita Automatica: +30min dalla fine del turno', 516),
+(56, 'Uscita Automatica: +30min dalla fine del turno', 517),
+(57, 'Uscita Automatica: +30min dalla fine del turno', 518),
+(58, 'Uscita Automatica: +30min dalla fine del turno', 519),
+(59, 'Uscita Automatica: +30min dalla fine del turno', 520),
+(60, 'Uscita Automatica: +30min dalla fine del turno', 521),
+(61, 'Uscita Automatica: +30min dalla fine del turno', 522),
+(62, 'Uscita Automatica: +30min dalla fine del turno', 523),
+(63, 'Uscita Automatica: +30min dalla fine del turno', 524),
+(64, 'Uscita Automatica: +30min dalla fine del turno', 525),
+(65, 'Uscita Automatica: +30min dalla fine del turno', 526),
+(66, 'Uscita Automatica: +30min dalla fine del turno', 527),
+(67, 'Uscita Automatica: +30min dalla fine del turno', 528),
+(68, 'Uscita Automatica: +30min dalla fine del turno', 529),
+(69, 'Uscita Automatica: +30min dalla fine del turno', 530),
+(70, 'Uscita Automatica: +30min dalla fine del turno', 531),
+(71, 'Uscita Automatica: +30min dalla fine del turno', 532),
+(72, 'Uscita Automatica: +30min dalla fine del turno', 533),
+(73, 'Uscita Automatica: +30min dalla fine del turno', 534),
+(74, 'Uscita Automatica: +30min dalla fine del turno', 535),
+(75, 'Uscita Automatica: +30min dalla fine del turno', 536),
+(76, 'Uscita Automatica: +30min dalla fine del turno', 537),
+(77, 'Uscita Automatica: +30min dalla fine del turno', 538),
+(78, 'Uscita Automatica: +30min dalla fine del turno', 539),
+(79, 'Uscita Automatica: +30min dalla fine del turno', 540),
+(80, 'Uscita Automatica: +30min dalla fine del turno', 541),
+(81, 'Uscita Automatica: +30min dalla fine del turno', 542),
+(82, 'Uscita Automatica: +30min dalla fine del turno', 543),
+(83, 'Uscita Automatica: +30min dalla fine del turno', 544),
+(84, 'Uscita Automatica: +30min dalla fine del turno', 545),
+(85, 'Uscita Automatica: +30min dalla fine del turno', 546),
+(86, 'Uscita Automatica: +30min dalla fine del turno', 547),
+(87, 'Uscita Automatica: +30min dalla fine del turno', 548),
+(88, 'Uscita Automatica: +30min dalla fine del turno', 549),
+(89, 'Uscita Automatica: +30min dalla fine del turno', 550),
+(90, 'Uscita Automatica: +30min dalla fine del turno', 551),
+(91, 'Uscita Automatica: +30min dalla fine del turno', 552),
+(92, 'Uscita Automatica: +30min dalla fine del turno', 553),
+(93, 'Uscita Automatica: +30min dalla fine del turno', 554),
+(94, 'Uscita Automatica: +30min dalla fine del turno', 555),
+(95, 'Uscita Automatica: +30min dalla fine del turno', 556),
+(96, 'Uscita Automatica: +30min dalla fine del turno', 557),
+(97, 'Uscita Automatica: +30min dalla fine del turno', 558),
+(98, 'Uscita Automatica: +30min dalla fine del turno', 559),
+(99, 'Uscita Automatica: +30min dalla fine del turno', 560),
+(100, 'Uscita Automatica: +30min dalla fine del turno', 561),
+(101, 'Uscita Automatica: +30min dalla fine del turno', 562),
+(102, 'Uscita Automatica: +30min dalla fine del turno', 563),
+(103, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 564),
+(104, 'Uscita Automatica: +30min dalla fine del turno', 565),
+(105, 'Uscita Automatica: +30min dalla fine del turno', 566),
+(106, 'Uscita Automatica: +30min dalla fine del turno', 567),
+(107, 'Uscita Automatica: +30min dalla fine del turno', 568),
+(108, 'Uscita Automatica: +30min dalla fine del turno', 569),
+(109, 'Uscita Automatica: +30min dalla fine del turno', 570),
+(110, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 571),
+(111, 'Uscita Automatica: +30min dalla fine del turno', 572),
+(112, 'Uscita Automatica: +30min dalla fine del turno', 573),
+(113, 'Uscita Automatica: +30min dalla fine del turno', 574),
+(114, 'Uscita Automatica: +30min dalla fine del turno', 575),
+(115, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 576),
+(116, 'Uscita Automatica: +30min dalla fine del turno', 577),
+(117, 'Uscita Automatica: +30min dalla fine del turno', 578),
+(118, 'Uscita Automatica: +30min dalla fine del turno', 579),
+(119, 'Uscita Automatica: +30min dalla fine del turno', 580),
+(120, 'Uscita Automatica: +30min dalla fine del turno', 581),
+(121, 'Uscita Automatica: +30min dalla fine del turno', 582),
+(122, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 583),
+(123, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 584),
+(124, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 585),
+(125, 'Uscita Automatica: +30min dalla fine del turno', 587),
+(126, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 598),
+(127, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 599),
+(128, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 626),
+(129, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 627),
+(130, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 628),
+(131, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 629),
+(132, 'Tentativo accesso non autorizzato: Livello insufficiente', 640),
+(133, 'Tentativo accesso non autorizzato: Livello insufficiente', 679),
+(134, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 706),
+(135, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 707),
+(136, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 713),
+(137, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 714),
+(138, 'Tentativo accesso non autorizzato: Livello insufficiente', 724);
+
+--
+-- Indici per le tabelle scaricate
+--
+
+--
+-- Indici per le tabelle `Accesses`
+--
+ALTER TABLE `Accesses`
+  ADD PRIMARY KEY (`IdAccess`),
+  ADD KEY `IdGate` (`IdGate`),
+  ADD KEY `FK_Accesses_Badges` (`IdBadge`);
+
+--
+-- Indici per le tabelle `AdminLogs`
+--
+ALTER TABLE `AdminLogs`
+  ADD PRIMARY KEY (`IdLog`);
+
+--
+-- Indici per le tabelle `Badges`
+--
+ALTER TABLE `Badges`
+  ADD PRIMARY KEY (`IdBadge`);
+
+--
+-- Indici per le tabelle `EmergencyEvents`
+--
+ALTER TABLE `EmergencyEvents`
+  ADD PRIMARY KEY (`IdEvent`),
+  ADD KEY `IdSector` (`IdSector`);
+
+--
+-- Indici per le tabelle `Employees`
+--
+ALTER TABLE `Employees`
+  ADD PRIMARY KEY (`IdEmployee`);
+
+--
+-- Indici per le tabelle `Gates`
+--
+ALTER TABLE `Gates`
+  ADD PRIMARY KEY (`IdGate`),
+  ADD KEY `IdSector` (`IdSectorA`),
+  ADD KEY `IdSectorTo` (`IdSectorB`);
+
+--
+-- Indici per le tabelle `Inventory`
+--
+ALTER TABLE `Inventory`
+  ADD PRIMARY KEY (`IdItem`);
+
+--
+-- Indici per le tabelle `MaintenanceRequests`
+--
+ALTER TABLE `MaintenanceRequests`
+  ADD PRIMARY KEY (`IdRequest`),
+  ADD KEY `IdGate` (`IdGate`);
+
+--
+-- Indici per le tabelle `MaintenanceTasks`
+--
+ALTER TABLE `MaintenanceTasks`
+  ADD KEY `IdTask` (`IdTask`),
+  ADD KEY `IdGate` (`IdGate`);
+
+--
+-- Indici per le tabelle `RestockTasks`
+--
+ALTER TABLE `RestockTasks`
+  ADD PRIMARY KEY (`IdTask`,`IdItem`),
+  ADD KEY `IdItem` (`IdItem`);
+
+--
+-- Indici per le tabelle `Sectors`
+--
+ALTER TABLE `Sectors`
+  ADD PRIMARY KEY (`IdSector`);
+
+--
+-- Indici per le tabelle `Shifts`
+--
+ALTER TABLE `Shifts`
+  ADD PRIMARY KEY (`IdRole`);
+
+--
+-- Indici per le tabelle `Tasks`
+--
+ALTER TABLE `Tasks`
+  ADD PRIMARY KEY (`IdTask`),
+  ADD KEY `IdEmployee` (`IdEmployee`);
+
+--
+-- Indici per le tabelle `Users`
+--
+ALTER TABLE `Users`
+  ADD PRIMARY KEY (`IdUser`),
+  ADD UNIQUE KEY `Email` (`Email`),
+  ADD KEY `IdBadge` (`IdBadge`);
+
+--
+-- Indici per le tabelle `Warnings`
+--
+ALTER TABLE `Warnings`
+  ADD PRIMARY KEY (`IdWarning`),
+  ADD KEY `IdAccess` (`IdAccess`);
+
+--
+-- AUTO_INCREMENT per le tabelle scaricate
+--
+
+--
+-- AUTO_INCREMENT per la tabella `Accesses`
+--
+ALTER TABLE `Accesses`
+  MODIFY `IdAccess` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=725;
+
+--
+-- AUTO_INCREMENT per la tabella `AdminLogs`
+--
+ALTER TABLE `AdminLogs`
+  MODIFY `IdLog` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+
+--
+-- AUTO_INCREMENT per la tabella `Badges`
+--
+ALTER TABLE `Badges`
+  MODIFY `IdBadge` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+
+--
+-- AUTO_INCREMENT per la tabella `EmergencyEvents`
+--
+ALTER TABLE `EmergencyEvents`
+  MODIFY `IdEvent` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `Employees`
+--
+ALTER TABLE `Employees`
+  MODIFY `IdEmployee` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+
+--
+-- AUTO_INCREMENT per la tabella `Gates`
+--
+ALTER TABLE `Gates`
+  MODIFY `IdGate` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+
+--
+-- AUTO_INCREMENT per la tabella `Inventory`
+--
+ALTER TABLE `Inventory`
+  MODIFY `IdItem` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT per la tabella `MaintenanceRequests`
+--
+ALTER TABLE `MaintenanceRequests`
+  MODIFY `IdRequest` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT per la tabella `Sectors`
+--
+ALTER TABLE `Sectors`
+  MODIFY `IdSector` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+
+--
+-- AUTO_INCREMENT per la tabella `Shifts`
+--
+ALTER TABLE `Shifts`
+  MODIFY `IdRole` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT per la tabella `Tasks`
+--
+ALTER TABLE `Tasks`
+  MODIFY `IdTask` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+
+--
+-- AUTO_INCREMENT per la tabella `Users`
+--
+ALTER TABLE `Users`
+  MODIFY `IdUser` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+
+--
+-- AUTO_INCREMENT per la tabella `Warnings`
+--
+ALTER TABLE `Warnings`
+  MODIFY `IdWarning` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
+
+--
+-- Limiti per le tabelle scaricate
+--
+
+--
+-- Limiti per la tabella `Accesses`
+--
+ALTER TABLE `Accesses`
+  ADD CONSTRAINT `Accesses_ibfk_2` FOREIGN KEY (`IdGate`) REFERENCES `Gates` (`IdGate`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `FK_Accesses_Badges` FOREIGN KEY (`IdBadge`) REFERENCES `Badges` (`IdBadge`) ON DELETE CASCADE;
+
+--
+-- Limiti per la tabella `EmergencyEvents`
+--
+ALTER TABLE `EmergencyEvents`
+  ADD CONSTRAINT `EmergencyEvents_ibfk_1` FOREIGN KEY (`IdSector`) REFERENCES `Sectors` (`IdSector`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Limiti per la tabella `Employees`
+--
+ALTER TABLE `Employees`
+  ADD CONSTRAINT `Employees_ibfk_1` FOREIGN KEY (`IdEmployee`) REFERENCES `Users` (`IdUser`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Limiti per la tabella `Gates`
+--
+ALTER TABLE `Gates`
+  ADD CONSTRAINT `Gates_ibfk_1` FOREIGN KEY (`IdSectorA`) REFERENCES `Sectors` (`IdSector`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `Gates_ibfk_2` FOREIGN KEY (`IdSectorB`) REFERENCES `Sectors` (`IdSector`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Limiti per la tabella `MaintenanceRequests`
+--
+ALTER TABLE `MaintenanceRequests`
+  ADD CONSTRAINT `MaintenanceRequests_ibfk_1` FOREIGN KEY (`IdGate`) REFERENCES `Gates` (`IdGate`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Limiti per la tabella `MaintenanceTasks`
+--
+ALTER TABLE `MaintenanceTasks`
+  ADD CONSTRAINT `MaintenanceTasks_ibfk_1` FOREIGN KEY (`IdTask`) REFERENCES `Tasks` (`IdTask`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `MaintenanceTasks_ibfk_2` FOREIGN KEY (`IdGate`) REFERENCES `Gates` (`IdGate`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Limiti per la tabella `RestockTasks`
+--
+ALTER TABLE `RestockTasks`
+  ADD CONSTRAINT `RestockTasks_ibfk_1` FOREIGN KEY (`IdTask`) REFERENCES `Tasks` (`IdTask`) ON DELETE CASCADE,
+  ADD CONSTRAINT `RestockTasks_ibfk_2` FOREIGN KEY (`IdItem`) REFERENCES `Inventory` (`IdItem`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Limiti per la tabella `Tasks`
+--
+ALTER TABLE `Tasks`
+  ADD CONSTRAINT `Tasks_ibfk_1` FOREIGN KEY (`IdEmployee`) REFERENCES `Employees` (`IdEmployee`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Limiti per la tabella `Users`
+--
+ALTER TABLE `Users`
+  ADD CONSTRAINT `Users_ibfk_1` FOREIGN KEY (`IdBadge`) REFERENCES `Badges` (`IdBadge`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Limiti per la tabella `Warnings`
+--
+ALTER TABLE `Warnings`
+  ADD CONSTRAINT `Warnings_ibfk_1` FOREIGN KEY (`IdAccess`) REFERENCES `Accesses` (`IdAccess`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
