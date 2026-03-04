@@ -25,7 +25,8 @@
     $dateBirth = trim($_POST["dateBirth"] ?? '');
     $email = trim($_POST["email"] ?? '');
     $password = trim($_POST["password"] ?? '');
-    $reason = trim($_POST["reason"] ?? '');
+    $password = trim($_POST["password"] ?? '');
+    // Reason field removed
 
     // --- INIZIO CONTROLLI DI SICUREZZA ---
 
@@ -52,10 +53,10 @@
     // --- FINE CONTROLLI DI SICUREZZA ---
 
 
-    // 3. Controllo se l'email esiste già (in Users o Visitors)
-    $query = "SELECT Email FROM Users WHERE Email = ? UNION SELECT Email FROM Visitors WHERE Email = ?" ; 
+    // 3. Controllo se l'email esiste già (in Users)
+    $query = "SELECT Email FROM Users WHERE Email = ?"; 
     $stmt = $conn->prepare($query) ;
-    $stmt->bind_param("ss", $email, $email);
+    $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
     
@@ -88,8 +89,9 @@
         $hashed_password = password_hash($password, PASSWORD_DEFAULT); // Password cifrata
 
         // C. Inserimento Visitatore
-        $stmt = $conn->prepare("INSERT INTO Visitors (IdBadge, Name, Surname, DateBirth, Email, Password, Reason, token, is_verified) VALUES (?,?,?,?,?,?,?,?,0)");
-        $stmt->bind_param("isssssss", $badgeId, $name, $surname, $dateBirth, $email, $hashed_password, $reason, $token);
+        // C. Inserimento Utente (ex Visitatore)
+        $stmt = $conn->prepare("INSERT INTO Users (IdBadge, Name, Surname, DateBirth, Email, Password, token, is_verified) VALUES (?,?,?,?,?,?,?,0)");
+        $stmt->bind_param("issssss", $badgeId, $name, $surname, $dateBirth, $email, $hashed_password, $token);
         
         if (!$stmt->execute()) {
             throw new Exception("Errore durante l'inserimento del Visitatore.");

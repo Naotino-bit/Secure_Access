@@ -5,9 +5,10 @@
 <?php
     // Usiamo la stessa logica dell'Admin per coerenza, ma mostriamo solo i dati
     $readQuery1 = "
-        SELECT V.Name, V.Surname, V.Email, V.Reason, V.is_verified, B.ExpirationDate 
-        FROM Visitors V
-        JOIN Badges B ON V.IdBadge = B.IdBadge
+        SELECT U.Name, U.Surname, U.Email, U.is_verified, B.ExpirationDate 
+        FROM Users U
+        JOIN Badges B ON U.IdBadge = B.IdBadge
+        WHERE B.BadgeLevel = 1
         ORDER BY B.ExpirationDate DESC
     ";
     $resRead1 = $conn->query($readQuery1);
@@ -29,7 +30,7 @@
                 <tr>
                     <td><?php echo htmlspecialchars($row['Name'] . " " . $row['Surname']); ?></td>
                     <td><?php echo htmlspecialchars($row['Email']); ?></td>
-                    <td><?php echo htmlspecialchars($row['Reason']); ?></td>
+                    <td>-</td>
                     <td>
                         <?php echo $row['is_verified'] ? "<span style='color:green; font-weight:bold;'>Verificato</span>" : "<span style='color:orange;'>In attesa</span>"; ?>
                     </td>
@@ -49,8 +50,9 @@
 <?php
     // Query per vedere gli altri dipendenti (escluso sé stesso)
     $readQuery2 = "
-        SELECT U.Name, U.Surname, U.Email, U.Role, B.BadgeLevel 
+        SELECT U.Name, U.Surname, U.Email, E.Role, B.BadgeLevel 
         FROM Users U 
+        JOIN Employees E ON U.IdUser = E.IdEmployee
         JOIN Badges B ON U.IdBadge = B.IdBadge 
         WHERE U.Email != ? 
         ORDER BY U.Surname ASC

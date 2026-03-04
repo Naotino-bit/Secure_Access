@@ -7,7 +7,7 @@ if(isset($_GET['email']) && isset($_GET['token'])) {
     $token = $_GET['token'];
 
 
-    $query = "SELECT * FROM Visitors WHERE Email = ? AND token = ? AND is_verified = 0";
+    $query = "SELECT * FROM Users WHERE Email = ? AND token = ? AND is_verified = 0";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ss", $email, $token);
     $stmt->execute();
@@ -15,7 +15,7 @@ if(isset($_GET['email']) && isset($_GET['token'])) {
 
     if ($result->num_rows > 0){
         $stmt->close(); //chiudo se troviamo l'utente
-        $UpdateQuery = "UPDATE Visitors SET is_verified = 1, token = NULL WHERE Email = ?";
+        $UpdateQuery = "UPDATE Users SET is_verified = 1, token = NULL WHERE Email = ?";
         $update = $conn->prepare($UpdateQuery);
         $update->bind_param("s", $email);
 

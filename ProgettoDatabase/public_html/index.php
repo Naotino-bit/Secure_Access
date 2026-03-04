@@ -90,12 +90,6 @@ $mode = $_GET['mode'] ?? 'login'; // login di default se non specificato
                    pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}"
                    title="La password deve essere di almeno 8 caratteri, contenere una maiuscola, un numero e un carattere speciale.">
 
-            <label for="reason">Motivo:</label>
-            <select name="reason" id="reason" required>
-                <option value="" disabled selected>Seleziona un motivo</option>
-                <option value="visita">Visita</option>
-                <option value="appuntamento">Appuntamento</option>
-            </select>
 
             <input type="submit" value="Register">
         </form>

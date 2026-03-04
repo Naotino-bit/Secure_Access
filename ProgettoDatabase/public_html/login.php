@@ -37,11 +37,9 @@
     //RICERCA IN USERS E VISITORS ATTRAVERSO L'EMAIL E VERIFICA DELLA PASSWORD
 
 
-    $query= "SELECT Email, Password, is_verified FROM Users WHERE Email = (?)
-             UNION 
-             SELECT Email, Password, is_verified FROM Visitors WHERE Email = (?)";
+    $query= "SELECT Email, Password, is_verified FROM Users WHERE Email = (?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("ss", $email, $email);
+    $stmt->bind_param("s", $email);
     $stmt->execute();
     $result= $stmt->get_result();
 
@@ -69,8 +67,3 @@
     header("Location: index.php");
     exit();
 ?>
-
-
-<!-- 
-print($result->num_rows);
-echo "<script type='text/javascript'>console.log('$result->num_rows');</script>"; -->

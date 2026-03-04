@@ -44,18 +44,16 @@ if (!isset($_SESSION['user'])) {
             <?php
             // QUERY AVANZATA: Unisce Accessi + Gate + (Users O Visitors)
             $sql = "
-                SELECT A.Time, A.Result, G.Type as GateName,
-                       COALESCE(U.Name, V.Name) as Nome,
-                       COALESCE(U.Surname, V.Surname) as Cognome,
-                       CASE 
-                           WHEN U.IdUser IS NOT NULL THEN U.Role
-                           ELSE 'VISITATORE' 
-                       END as RuoloIdentificato
+                SELECT A.Time, A.Result, G.IdGate as GateName,
+                       U.Name as Nome,
+                       U.Surname as Cognome,
+                       COALESCE(S.Role, 'VISITATORE') as RuoloIdentificato
                 FROM Accesses A
                 JOIN Gates G ON A.IdGate = G.IdGate
                 JOIN Badges B ON A.IdBadge = B.IdBadge
-                LEFT JOIN Users U ON B.IdBadge = U.IdBadge
-                LEFT JOIN Visitors V ON B.IdBadge = V.IdBadge
+                JOIN Users U ON B.IdBadge = U.IdBadge
+                LEFT JOIN Employees E ON U.IdUser = E.IdEmployee
+                JOIN Shifts S ON E.IdRole = S.IdRole
                 ORDER BY A.Time DESC
             ";
             
