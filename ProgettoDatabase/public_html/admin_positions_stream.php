@@ -11,10 +11,13 @@ if (!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user'];
 
-// Verifica admin (BadgeLevel = 4)
+// Verifica autorizzazione: Admin (Livello 4) o Sorveglianza (Livello 3)
 $authQuery = "
-    SELECT B.BadgeLevel
-    FROM Users U JOIN Badges B ON U.IdBadge = B.IdBadge
+    SELECT B.BadgeLevel, S.Role
+    FROM Users U 
+    JOIN Badges B ON U.IdBadge = B.IdBadge
+    LEFT JOIN Employees E ON U.IdUser = E.IdEmployee
+    LEFT JOIN Shifts S ON E.IdRole = S.IdRole
     WHERE U.Email = ?
 ";
 $stmt = $conn->prepare($authQuery);
@@ -24,7 +27,9 @@ $res = $stmt->get_result();
 $me = $res->fetch_assoc();
 $stmt->close();
 
-if (!$me || (int)$me['BadgeLevel'] !== 4) {
+$isAuthorized = ($me && ((int)$me['BadgeLevel'] === 4 || ($me['Role'] === 'Sorveglianza' && (int)$me['BadgeLevel'] === 3)));
+
+if (!$isAuthorized) {
     http_response_code(403);
     exit();
 }
@@ -76,8 +81,8 @@ while (true) {
         JOIN Badges B ON A.IdBadge = B.IdBadge
         JOIN Users U ON B.IdBadge = U.IdBadge
         LEFT JOIN Employees E ON U.IdUser = E.IdEmployee
-        JOIN Shifts S ON E.IdRole = S.IdRole
-        WHERE A.Result = 'GRANTED' AND A.IdAccess > ?
+        LEFT JOIN Shifts S ON E.IdRole = S.IdRole
+        WHERE A.Result IN ('GRANTED', 'AUTO_EXIT') AND A.IdAccess > ?
         ORDER BY A.IdAccess ASC
         LIMIT 50
     ";

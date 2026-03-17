@@ -52,36 +52,76 @@ $now = new DateTime();
 <head>
     <meta charset="UTF-8">
     <title>Le Mie Task</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .task-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fff; border-left: 5px solid #ccc; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; padding: 40px 20px; color: #333; }
+        .container { 
+            max-width: 850px; margin: 0 auto; 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; 
+            padding: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+        }
+        h1 { text-align: center; color: #2c3e50; font-weight: 700; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 2.2rem; }
+        .back-link { text-decoration: none; color: #3498db; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 20px; transition: color 0.3s; }
+        .back-link:hover { color: #2980b9; }
+
+        .task-card { 
+            background: rgba(255, 255, 255, 0.6); 
+            border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; 
+            padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+            border-left: 5px solid #ccc; transition: transform 0.2s;
+        }
+        .task-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
         .task-maint { border-left-color: #e67e22; }
         .task-restock { border-left-color: #2980b9; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .time-box { font-size: 0.9em; color: #555; background: #eee; padding: 4px 8px; border-radius: 4px; }
         
-        .btn-action { display: inline-block; padding: 10px 20px; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; cursor: pointer; border: none; }
-        .btn-enabled { background: #27ae60; }
-        .btn-enabled:hover { background: #219150; }
-        .btn-disabled { background: #95a5a6; cursor: not-allowed; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 10px; }
+        .header h3 { color: #2c3e50; font-size: 1.25em; display: flex; align-items: center; gap: 8px; }
+        .time-box { font-size: 0.9em; color: #555; background: rgba(0,0,0,0.05); padding: 5px 12px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
         
-        .alert { padding: 10px; border-radius: 5px; margin-bottom: 15px; }
-        .alert-success { background: #d4edda; color: #155724; }
-        .alert-error { background: #f8d7da; color: #721c24; }
+        .task-content { margin-bottom: 20px; font-size: 1.05em; color: #444; line-height: 1.6; }
+        .task-content strong { color: #2c3e50; }
+
+        .btn-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 1em; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn-enabled { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4); }
+        .btn-enabled:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6); }
+        .btn-disabled { background: #95a5a6; cursor: not-allowed; box-shadow: none; }
+        .btn-expire { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); box-shadow: 0 4px 15px rgba(255, 8, 68, 0.4); }
+        .btn-expire:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 8, 68, 0.6); }
+        
+        .form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .alert { padding: 15px 20px; border-radius: 10px; margin-bottom: 25px; text-align: left; font-weight: 600; animation: slideDown 0.4s ease-out; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .inventory-section { margin-top: 40px; background: rgba(255,255,255,0.6); padding: 25px; border-radius: 12px; border-left: 5px solid #27ae60; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .inventory-section h2 { color: #27ae60; margin-bottom: 15px; margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 1.4em; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        th { background-color: #f8f9fa; padding: 12px 15px; text-align: left; color: #495057; font-weight: 600; border-bottom: 2px solid #dee2e6; }
+        td { padding: 12px 15px; border-bottom: 1px solid #e9ecef; }
+        tr:hover { background-color: #f1f3f5; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <a href="dashboard.php" style="text-decoration:none; color:#3498db;">&larr; Home</a>
-    <h1>Le Mie Task Assegnate</h1>
+    <a href="dashboard.php" class="back-link"><i class="fas fa-arrow-left"></i> Home</a>
+    <h1><i class="fas fa-clipboard-list" style="color: #3498db;"></i> Le Mie Task Assegnate</h1>
 
     <?php if (isset($_GET['msg'])): ?>
-        <div class="alert alert-success"><?php echo htmlspecialchars($_GET['msg']); ?></div>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_GET['msg']); ?></div>
     <?php endif; ?>
     <?php if (isset($_GET['error'])): ?>
-        <div class="alert alert-error"><?php echo htmlspecialchars($_GET['error']); ?></div>
+        <div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($_GET['error']); ?></div>
     <?php endif; ?>
 
     <?php if (count($tasks) == 0): ?>
@@ -99,33 +139,40 @@ $now = new DateTime();
             ?>
             <div class="task-card <?php echo $class; ?>">
                 <div class="header">
-                    <h3 style="margin:0;"><?php echo $title; ?></h3>
+                    <h3 style="margin:0;">
+                        <?php if($task['Type'] == 'Maintenance'): ?>
+                            <i class="fas fa-tools" style="color:#e67e22;"></i>
+                        <?php else: ?>
+                            <i class="fas fa-box-open" style="color:#2980b9;"></i>
+                        <?php endif; ?>
+                        <?php echo $title; ?>
+                    </h3>
                     <div class="time-box">
-                        <?php echo $start->format('d/m H:i'); ?> - <?php echo $end->format('d/m H:i'); ?>
+                        <i class="far fa-clock"></i> <?php echo $start->format('d/m H:i'); ?> - <?php echo $end->format('d/m H:i'); ?>
                     </div>
                 </div>
                 
-                <p>
+                <div class="task-content">
                     <?php if ($task['Type'] == 'Maintenance'): ?>
-                        Settore: <strong><?php echo htmlspecialchars($task['SectorDesc']); ?></strong><br>
-                        Usura attuale: <?php echo $task['Wear']; ?>%
+                        <p><i class="fas fa-map-marker-alt" style="color:#7f8c8d; width:20px;"></i> Settore: <strong><?php echo htmlspecialchars($task['SectorDesc']); ?></strong></p>
+                        <p><i class="fas fa-chart-pie" style="color:#7f8c8d; width:20px;"></i> Usura attuale: <strong><?php echo $task['Wear']; ?>%</strong></p>
                     <?php else: ?>
-                        Articolo ID: <strong><?php echo htmlspecialchars($task['IdItem']); ?></strong><br>
-                        Quantità da aggiungere: <strong><?php echo $task['RestockQty']; ?></strong>
+                        <p><i class="fas fa-barcode" style="color:#7f8c8d; width:20px;"></i> Articolo ID: <strong><?php echo htmlspecialchars($task['IdItem']); ?></strong></p>
+                        <p><i class="fas fa-plus-circle" style="color:#7f8c8d; width:20px;"></i> Quantità da aggiungere: <strong><?php echo $task['RestockQty']; ?></strong></p>
                     <?php endif; ?>
-                </p>
+                </div>
 
-                <form action="complete_task.php" method="POST">
+                <form action="complete_task.php" method="POST" class="form-actions">
                     <input type="hidden" name="id_task" value="<?php echo $task['IdTask']; ?>">
                     <?php if ($isTime): ?>
-                        <button type="submit" name="action" value="complete" class="btn-action btn-enabled">COMPLETA ORA</button>
+                        <button type="submit" name="action" value="complete" class="btn-action btn-enabled"><i class="fas fa-check"></i> COMPLETA ORA</button>
                     <?php else: ?>
                         <button type="button" class="btn-action btn-disabled" title="Puoi completare la task solo nell'orario indicato">
-                            <?php echo ($now < $start) ? "Non ancora disponibile" : "Scaduta"; ?>
+                            <i class="fas fa-ban"></i> <?php echo ($now < $start) ? "Non ancora disponibile" : "Scaduta"; ?>
                         </button>
                         <?php if (!($now < $start)): ?>
-                            <button type="submit" name="action" value="expire" class="btn-action btn-enabled" title="Chiedi di riassegnare la task">
-                                Riassegna task 
+                            <button type="submit" name="action" value="expire" class="btn-action btn-expire" title="Chiedi di riassegnare la task">
+                                <i class="fas fa-redo"></i> Riassegna task 
                             </button>    
                         <?php endif; ?>
                     <?php endif; ?>
@@ -155,25 +202,28 @@ $now = new DateTime();
     }
 
     if ($isMagazziniere || $hasRestockTask): ?>
-        <div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>IdItem</th>
-                        <th>Description</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach($inventory as $i): ?>
+        <div class="inventory-section">
+            <h2><i class="fas fa-boxes"></i> Stato Inventario</h2>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
                         <tr>
-                            <td><?php echo $i['IdItem']; ?></td>
-                            <td><?php echo $i['Description']; ?></td>
-                            <td><?php echo $i['Quantity']; ?></td>
+                            <th>IdItem</th>
+                            <th>Description</th>
+                            <th>Quantity</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach($inventory as $i): ?>
+                            <tr>
+                                <td><?php echo $i['IdItem']; ?></td>
+                                <td><?php echo htmlspecialchars($i['Description']); ?></td>
+                                <td><strong><?php echo $i['Quantity']; ?></strong></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     <?php endif; ?>
 </div>

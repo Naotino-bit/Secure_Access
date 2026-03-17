@@ -17,7 +17,7 @@ $email = $_SESSION['user'];
 
 // Recupero dati utente, LIVELLO BADGE e ORARI TURNO
 $query = "
-    SELECT U.Name, U.Surname, U.IdBadge, B.BadgeLevel, B.ExpirationDate, B.DateOfIssue, S.Start, S.End
+    SELECT U.Name, U.Surname, U.IdBadge, B.BadgeLevel, B.ExpirationDate, B.DateOfIssue, S.Start, S.End, S.Role
     FROM Users U 
     JOIN Badges B ON U.IdBadge = B.IdBadge 
     LEFT JOIN Employees E ON U.IdUser = E.IdEmployee
@@ -36,11 +36,11 @@ $badgeLevel = 0;
 
 $stmt->close();
 
-$isAdmin = isset($badge['BadgeLevel']) && (int)$badge['BadgeLevel'] === 4;
+$isSurveillance = isset($badge['Role']) && $badge['Role'] === 'Sorveglianza';
 
 // Se l'admin_mode non è settato nella sessione, lo inizializziamo in base all'ultima posizione
-if ($isAdmin && !isset($_SESSION['admin_mode'])) {
-    $LastPosTempQuery = $conn->prepare("SELECT IdSectorTo FROM Accesses WHERE IdBadge = ? AND Result = 'GRANTED' ORDER BY IdAccess DESC LIMIT 1;");
+if ($isSurveillance && !isset($_SESSION['admin_mode'])) {
+    $LastPosTempQuery = $conn->prepare("SELECT IdSectorTo FROM Accesses WHERE IdBadge = ? AND Result IN ('GRANTED', 'AUTO_EXIT') ORDER BY IdAccess DESC LIMIT 1;");
     $LastPosTempQuery->bind_param("i", $badge['IdBadge']);
     $LastPosTempQuery->execute();
     $resTmp = $LastPosTempQuery->get_result();
@@ -51,9 +51,9 @@ if ($isAdmin && !isset($_SESSION['admin_mode'])) {
     $_SESSION['admin_mode'] = ($realPosTemp == 25) ? 'monitor' : 'interactive';
 }
 
-$isMonitorMode = $isAdmin && (isset($_SESSION['admin_mode']) && $_SESSION['admin_mode'] === 'monitor');
+$isMonitorMode = $isSurveillance && (isset($_SESSION['admin_mode']) && $_SESSION['admin_mode'] === 'monitor');
 
-// Per l'ADMIN in sola visualizzazione (richiesta GET) evitiamo query pesanti sulla tabella Accesses
+// Per l'ADMIN (o Sicurezza) in sola visualizzazione (richiesta GET) evitiamo query pesanti sulla tabella Accesses
 if ($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $LastPos = 1;              // Valore neutro, la posizione admin non è rilevante
     $LastPositionResult = null;
@@ -61,7 +61,7 @@ if ($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     // 2. Troviamo l'ultima posizione dell'utente; se non esiste è fuori dalla struttura
     $LastPositionQuery = $conn->prepare("SELECT IdSectorTo 
                                          FROM Accesses 
-                                         WHERE IdBadge = ? AND RESULT = 'GRANTED' 
+                                         WHERE IdBadge = ? AND RESULT IN ('GRANTED', 'AUTO_EXIT') 
                                          ORDER BY IdAccess DESC 
                                          LIMIT 1;");
     $LastPositionQuery->bind_param("i", $badge['IdBadge']);
@@ -91,31 +91,47 @@ $userBadgeLevel = isset($badge['BadgeLevel']) ? (int)$badge['BadgeLevel'] : 0;
 // 3. Recupero tutte le posizioni dove l'utente può andare (solo se non è admin viewer)
 $accessibleSectors = [];
 if (!($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST')) {
-    // Con due join recupero anche i nomi delle stanze
-    $PossiblePositionQuery = $conn->prepare("SELECT g.IdGate, g.SecurityLevel, g.IdSectorA, sa.Description 
-                                                    AS SectorA_Description, g.IdSectorB, sb.Description 
-                                                    AS SectorB_Description, g.Wear, g.IsLocked 
-                                                    FROM Gates g 
-                                                    LEFT JOIN Sectors sa ON g.IdSectorA = sa.IdSector 
-                                                    LEFT JOIN Sectors sb ON g.IdSectorB = sb.IdSector 
-                                                    WHERE (IdSectorA = ? OR IdSectorB = ?) AND SecurityLevel <= ?;");
-    $PossiblePositionQuery->bind_param("iii", $LastPos, $LastPos, $badge['BadgeLevel']);
+    // === GESTIONE EMERGENZE FRONTEND ==============================
+    $emergencyQuery = $conn->query("SELECT * FROM EmergencyEvents WHERE NOW() BETWEEN StartTime AND EndTime");
+    $isFireActive = false;
+    $gasLeakRooms = [];
+    while ($ev = $emergencyQuery->fetch_assoc()) {
+        if ($ev['Type'] === 'Incendio') $isFireActive = true;
+        if ($ev['Type'] === 'Fuga di gas') $gasLeakRooms[] = $ev['IdSector'];
+    }
+
+    // Troviamo tutte le porte collegate
+    $PossiblePositionQuery = $conn->prepare("SELECT g.IdGate, g.SecurityLevel, g.IdSectorA, g.IdSectorB, g.Wear, g.IsLocked 
+                                             FROM Gates g 
+                                             WHERE (IdSectorA = ? OR IdSectorB = ?)");
+    $PossiblePositionQuery->bind_param("ii", $LastPos, $LastPos);
     $PossiblePositionQuery->execute();
     $PossiblePositionResult = $PossiblePositionQuery->get_result();
 
-    // Costruisco l'array dei settori raggiungibili
-    $PossiblePositionResult->data_seek(0); 
     while($row = $PossiblePositionResult->fetch_assoc()) {
-        if ($LastPos == $row['IdSectorA']){
-            $IdSectorTo = $row['IdSectorB']; 
-        } else {
-            $IdSectorTo = $row['IdSectorA'];
+        $IdSectorTo = ($LastPos == $row['IdSectorA']) ? $row['IdSectorB'] : $row['IdSectorA'];
+        
+        $isAccessible = (isset($badge['BadgeLevel']) && $badge['BadgeLevel'] >= $row['SecurityLevel'] && $row['Wear'] < 100 && $row['IsLocked'] == 0);
+        
+        // Regola utente pending
+        if (isset($badge['BadgeLevel']) && $badge['BadgeLevel'] == 1 && $LastPos == 1 && $IdSectorTo != 1) {
+            $isAccessible = false;
         }
-        $accessibleSectors[] = (string)$IdSectorTo;
-    }
 
-    // Rimetti il puntatore all'inizio se dovessi riutilizzare il risultato altrove
-    $PossiblePositionResult->data_seek(0);
+        // Sovrascrittura per Emergenze
+        if ($isFireActive) {
+            $isAccessible = true;
+        } elseif (in_array($IdSectorTo, $gasLeakRooms)) {
+            $isAccessible = false; // NON entrare dove c'è fuga di gas
+        } elseif (in_array($LastPos, $gasLeakRooms)) {
+            $isAccessible = true; // SCAPPA se sei nella stanza con fuga di gas
+        }
+
+        if ($isAccessible) {
+            $accessibleSectors[] = (string)$IdSectorTo;
+        }
+    }
+    $PossiblePositionQuery->close();
 } else {
     $PossiblePositionResult = null;
 }
@@ -173,9 +189,73 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $SectorId = $clicked_sector_id; // Questo è il settore di destinazione
         $timestamp = date("Y-m-d H:i:s");
         
+        // === GESTIONE EMERGENZE ===============================================
+        $emergencyQuery = $conn->query("SELECT * FROM EmergencyEvents WHERE NOW() BETWEEN StartTime AND EndTime");
+        $isFireActive = false;
+        $isGasLeakCurrentRoom = false;
+        $isGasLeakDestRoom = false;
+
+        while ($ev = $emergencyQuery->fetch_assoc()) {
+            if ($ev['Type'] === 'Incendio') {
+                $isFireActive = true;
+                break;
+            }
+            if ($ev['Type'] === 'Fuga di gas') {
+                if ($ev['IdSector'] == $LastPos) $isGasLeakCurrentRoom = true;
+                if ($ev['IdSector'] == $SectorId) $isGasLeakDestRoom = true;
+            }
+        }
+        // ======================================================================
+
         // *** Esegui la tua logica di controllo (Badge Scaduto, Livello Insufficiente, etc.) ***
 
-        if (!$badge) {
+        if ($isFireActive) {
+            // Find a gate that is NOT worn out (Wear < 100)
+            $validFireGate = null;
+            foreach ($sectorGates as $GateInfo) {
+                if ($GateInfo['wear'] < 100) {
+                    $validFireGate = $GateInfo['gate'];
+                    break;
+                }
+            }
+
+            if ($validFireGate) {
+                $response['status'] = 'success';
+                $response['message'] = "EMERGENZA INCENDIO: Tutti i varchi aperti. Evacuazione in corso!";
+                $esito = "GRANTED";
+                $GateId = $validFireGate;
+            } else {
+                $response['status'] = 'error';
+                $response['message'] = "ACCESSO NEGATO: Tutte le porte verso questa stanza sono fuori uso (Manutenzione Richiesta).";
+                $esito = "REQUIRED_MAINTENANCE";
+                $GateId = $sectorGates[0]['gate'];
+            }
+        } elseif ($isGasLeakDestRoom) {
+            $response['status'] = 'error';
+            $response['message'] = "ACCESSO NEGATO: Fuga di gas rilevata nella Stanza $SectorId!";
+            $esito = "DENIED";
+            $GateId = $sectorGates[0]['gate'];
+        } elseif ($isGasLeakCurrentRoom) {
+            $validGasGate = null;
+            foreach ($sectorGates as $GateInfo) {
+                if ($GateInfo['wear'] < 100) {
+                    $validGasGate = $GateInfo['gate'];
+                    break;
+                }
+            }
+
+            if ($validGasGate) {
+                $response['status'] = 'success';
+                $response['message'] = "FUGA DI GAS: Evacuazione d'emergenza consentita verso la Stanza $SectorId.";
+                $esito = "GRANTED";
+                $GateId = $validGasGate;
+            } else {
+                $response['status'] = 'error';
+                $response['message'] = "ACCESSO NEGATO: Tutte le porte verso questa stanza sono fuori uso (Manutenzione Richiesta).";
+                $esito = "REQUIRED_MAINTENANCE";
+                $GateId = $sectorGates[0]['gate'];
+            }
+        } elseif (!$badge) {
             $response['message'] = "ERRORE: Badge non esistente!";
             $esito = "NOT_FOUND";
             $GateId = $sectorGates[0]['gate'];
@@ -218,7 +298,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     // 1. Check Usura
                     $GateWearStatus = $conn->query("SELECT Wear FROM Gates WHERE IdGate = $currentGateId")->fetch_assoc();
-                    if ($GateWearStatus['Wear'] >= 33) {
+                    if ($GateWearStatus['Wear'] >= 100) {
                         $bestEsito = "REQUIRED_MAINTENANCE";
                         $bestMessage = "ACCESSO NEGATO: Manutenzione richiesta su questa porta.";
                         continue;
@@ -227,7 +307,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // 2. Check Porta Bloccata
                     if ($GateLocked == 1) {
                         $bestEsito = "DENIED";
-                        $bestMessage = "ACCESSO NEGATO: Questo varco è momentaneamente BLOCCATO dall'amministrazione.";
+                        $bestMessage = "ACCESSO NEGATO: Questo varco è momentaneamente BLOCCATO dalla sorveglianza.";
                         continue;
                     }
 
@@ -361,10 +441,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Calcola le nuove stanze raggiungibili dalla nuova posizione (senza ricaricare la pagina)
             $nextAccessible = [];
-            $nextQuery = $conn->prepare("SELECT g.IdGate, g.SecurityLevel, g.IdSectorA, g.IdSectorB 
+            $nextQuery = $conn->prepare("SELECT g.IdGate, g.SecurityLevel, g.IdSectorA, g.IdSectorB, g.Wear, g.IsLocked 
                                          FROM Gates g 
-                                         WHERE (IdSectorA = ? OR IdSectorB = ?) AND SecurityLevel <= ?;");
-            $nextQuery->bind_param("iii", $SectorId, $SectorId, $badge['BadgeLevel']);
+                                         WHERE (IdSectorA = ? OR IdSectorB = ?)");
+            $nextQuery->bind_param("ii", $SectorId, $SectorId);
             $nextQuery->execute();
             $nextResult = $nextQuery->get_result();
             while ($nrow = $nextResult->fetch_assoc()) {
@@ -373,7 +453,24 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     $to = $nrow['IdSectorA'];
                 }
-                $nextAccessible[] = (string)$to;
+
+                $isAcc = (isset($badge['BadgeLevel']) && $badge['BadgeLevel'] >= $nrow['SecurityLevel'] && $nrow['Wear'] < 100 && $nrow['IsLocked'] == 0);
+                
+                if (isset($badge['BadgeLevel']) && $badge['BadgeLevel'] == 1 && $SectorId == 1 && $to != 1) {
+                    $isAcc = false;
+                }
+
+                if ($isFireActive) {
+                    $isAcc = true;
+                } elseif (in_array($to, $gasLeakRooms)) {
+                    $isAcc = false;
+                } elseif (in_array($SectorId, $gasLeakRooms)) {
+                    $isAcc = true;
+                }
+
+                if ($isAcc) {
+                    $nextAccessible[] = (string)$to;
+                }
             }
             $nextQuery->close();
 
@@ -404,11 +501,35 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <title>Simulazione Varco</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #d9d9d9; color: white; }
+        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #e8feffff; color: white; }
         .scanner-box { background: #444; padding: 30px; border-radius: 10px; display: inline-block; width: 400px; }
         select, input { width: 90%; padding: 10px; margin: 10px 0; font-size: 1.1em; border-radius: 5px; border: none; }
         button { width: 95%; padding: 10px; font-size: 1.2em; cursor: pointer; background-color: #007bff; color: white; border: none; margin-top: 15px; border-radius: 5px; }
-        .result { margin-top: 20px; padding: 20px; font-size: 1.5em; border-radius: 5px; }
+        /* Stile Toast Notification per Messaggi Accesso */
+        .result { 
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100000;
+            padding: 15px 30px; 
+            font-size: 1.2em; 
+            font-weight: bold;
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            color: white;
+            opacity: 0;
+            visibility: hidden;
+            /* Assicura che visibility diventi hidden SOLO ALLA FINE dell'animazione (0.2s di ritardo) */
+            transition: opacity 0.2s ease-in, top 0.2s ease-in, visibility 0s linear 0.2s;
+        }
+        .result.show {
+            opacity: 1;
+            visibility: visible;
+            top: 40px;
+            /* Quando entra (show), la classe diventa visible istantaneamente */
+            transition: opacity 0.2s ease-out, top 0.2s ease-out, visibility 0s linear 0s;
+        }
         .success { background-color: #28a745; }
         .error { background-color: #dc3545; }
         a { color: #ccc; text-decoration: none; display: block; margin-top: 20px; }
@@ -514,15 +635,60 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
 
-    <h1>Simulazione Controllo Accessi</h1>
     <div id="access-message" class="result"></div>
-    <p id="current-pos-text" data-current-pos="<?php echo $LastPos; ?>">
-        Ti trovi nella stanza: <?php echo $LastPos;?>
-    </p>
+    <?php if (!$isMonitorMode): ?>
+    <div id="current-pos-badge">
+        <i class="fas fa-map-marker-alt"></i>
+        <span id="current-pos-text" data-current-pos="<?php echo $LastPos; ?>">
+            Ti trovi nella Stanza: <strong><?php echo $LastPos;?></strong>
+        </span>
+    </div>
+    <?php endif; ?>
+
+    <!-- FontAwesome per l'icona (se non è già importato altrove, lo aggiungiamo qui) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Stile moderno per l'indicatore di posizione */
+        #current-pos-badge {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        #current-pos-badge i {
+            color: #f1c40f;
+            font-size: 1.2em;
+            animation: pulse-marker 2s infinite;
+        }
+        #current-pos-badge strong {
+            color: #f1c40f;
+            font-size: 1.2em;
+        }
+
+        @keyframes pulse-marker {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
     <div class="fixed-centered-overlay">
         <img src="img/piantina2.png" class="overlay-element base-layer" alt=""> 
         
-        <svg class="overlay-element top-layer" width="2097" height="2171" viewBox="0 0 2097 2171" fill="none" xmlns="http://www.w3.org/2000/svg" style="padding-left: 3px;">
+        <svg class="overlay-element top-layer" width="2097" height="2171" viewBox="0 0 2097 2171" fill="none" xmlns="http://www.w3.org/2000/svg" style="padding-left: 3px; overflow: visible;">
             <path class="room" id="1" fill-opacity="0" d="M845.713 1459.5L643.713 1812.5L744.713 1984.5L907.713 1886.5H987.713V2163.5H1109.71V1897.5H1173.71V1601.5H1338.71L1253.71 1459.5H845.713Z" fill="#D9D9D9" stroke="black" />
             <path class="room" id="2" fill-opacity="0" d="M915.213 1895L748.213 1992.5L847.213 2162H987.713V1895H915.213Z" fill="#D9D9D9" stroke="black" />
             <path class="room" id="3" fill-opacity="0" d="M1178.71 1901H1114.71V2170H1260.1L1466.21 1813H1178.71V1901Z" fill="#D9D9D9" stroke="black" />
@@ -770,17 +936,23 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         })
         .then(data => {
             
-            // 1. Mostra il messaggio di stato
+            // 1. Mostra il messaggio di stato come TOAST
             const resultElement = document.getElementById('access-message'); 
             resultElement.textContent = data.message;
-            resultElement.className = data.status === 'success' ? 'result success' : 'result error';
+            resultElement.className = data.status === 'success' ? 'result success show' : 'result error show';
+            
+            // Nascondi automaticamente dopo 4 secondi
+            if(window.accessMessageTimeout) clearTimeout(window.accessMessageTimeout);
+            window.accessMessageTimeout = setTimeout(() => {
+                resultElement.classList.remove('show');
+            }, 4000);
 
             // 2. GESTIONE ACCESSO CONSENTITO (Aggiornamento Mappa Senza Ricarica)
             if (data.status === 'success' && data.new_pos) {
                 
                 // a) AGGIORNA LO STATO GLOBALE NELL'HTML
                 const posElement = document.getElementById('current-pos-text');
-                posElement.textContent = `Ti trovi nella stanza: ${data.new_pos}`;
+                posElement.innerHTML = `Ti trovi nella Stanza: <strong>${data.new_pos}</strong>`;
                 posElement.dataset.currentPos = data.new_pos; // *** ESSENZIALE: Aggiorna il data attribute! ***
                 
                 // b) Rimuovi il messaggio di "Hall" se ci si sposta dalla Hall (Stanza 1)
@@ -815,6 +987,34 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     const isMonitorMode = <?php echo $isMonitorMode ? 'true' : 'false'; ?>;
     if (!isMonitorMode) {
         initializeMapEvents(<?php echo json_encode($LastPos); ?>);
+        
+        // --- POLLING PER AGGIORNAMENTI IN TEMPO REALE PER UTENTI NORMALI ---
+        setInterval(function() {
+            // Chiedi al server lo stato di tutti i gate e delle emergenze
+            fetch('gates_status_api.php')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Aggiorna i dati globali
+                    Object.keys(data.gates).forEach(id => {
+                        if (allGatesData[id]) {
+                            allGatesData[id].Wear = data.gates[id].Wear;
+                            allGatesData[id].IsLocked = data.gates[id].IsLocked;
+                        }
+                    });
+                    
+                    // Ricalcoliamo accessibilità base (il server ci restituisce i nuovi accessible_sectors)
+                    if (Array.isArray(data.accessible_sectors)) {
+                        accessibleSectors = data.accessible_sectors.map(String);
+                    }
+                    
+                    // Ridisegnamo la ui con i nuovi dati
+                    const currentPos = document.getElementById('current-pos-text').dataset.currentPos;
+                    initializeMapEvents(currentPos);
+                }
+            })
+            .catch(err => console.error("Errore di polling gates:", err));
+        }, 3000); // 3 secondi
     }
 
     // === REALTIME ADMIN OVERLAY (BadgeLevel 4, Modalità Monitor) ===

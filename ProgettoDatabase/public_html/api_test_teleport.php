@@ -9,7 +9,7 @@ $teleportQuery = "
     JOIN (
         SELECT IdBadge, MAX(IdAccess) as MaxIdAccess
         FROM Accesses
-        WHERE Result = 'GRANTED'
+        WHERE Result IN ('GRANTED', 'AUTO_EXIT')
         GROUP BY IdBadge
     ) LatestAccess ON U.IdBadge = LatestAccess.IdBadge
     JOIN Accesses A ON LatestAccess.MaxIdAccess = A.IdAccess

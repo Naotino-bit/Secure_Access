@@ -36,21 +36,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $newRole = "";
     
     if (isset($_POST['new_role'])) {
-        // HIRING FLOW
+        // HIRING OR MANAGING EXISTING FLOW
         $newRole = $_POST['new_role'];
-        if ($newRole == 'Admin') {
-            $newLevel = 3;
+        if ($newRole == 'Admin' || $newRole == 'Amministratore') {
+            $newLevel = 4; // Admin uses BadgeLevel 4
+        } elseif ($newRole == 'Sorveglianza') {
+            $newLevel = 3; // Security requires BadgeLevel 3
+        } elseif ($newRole == 'Licenziato' || $newRole == 'Rifiutato') {
+            $newLevel = 0;
         } else {
             $newLevel = 2; // Tecnico, Magazziniere, Chimico
         }
     } elseif (isset($_POST['new_level'])) {
-        // MANAGING EXISTING FLOW
+        // LEGACY FALLBACK
         $newLevel = intval($_POST['new_level']);
         if ($newLevel == 3) $newRole = "Admin";
         elseif ($newLevel == 2) $newRole = "Dipendente"; // Default generic role for now
     }
 
-    if($newLevel < 1 || $newLevel > 3) {
+    if($newLevel < 0 || $newLevel > 3) {
         header("Location: dashboard.php?error=livello_non_valido");
         exit();
     }
@@ -70,57 +74,98 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Utente non trovato nel database.");
         }
 
+        if ($newLevel > 1 && $userData['is_verified'] == 0) {
+            throw new Exception("Impossibile assumere: l'utente non ha ancora verificato la sua email.");
+        }
+
         $idBadge = $userData['IdBadge'];
         $idUser = $userData['IdUser'];
 
-        // 1. Update Badge Level
-        $query = "UPDATE Badges SET BadgeLevel = ? WHERE IdBadge = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ii", $newLevel, $idBadge);
-        $stmt->execute();
-        $stmt->close();
-
-        // 2. Handle Employees Table
-        if ($newLevel > 1) {
+        if ($newLevel == 0) {
+            // Rifiuto Candidatura o Licenziamento: Settiamo BadgeLevel a 0.
+            // In questo modo i dati dell'utente rimangono nel DB ma l'utente non può accedere a nulla.
+            $query = "UPDATE Badges SET BadgeLevel = 0 WHERE IdBadge = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $idBadge);
+            $stmt->execute();
+            $stmt->close();
             
-            // Map Role String to IdRole
-            $idRole = 2; // Default Tecnico
-            if ($newRole == 'Admin' || $newRole == 'Amministratore') $idRole = 1;
-            elseif ($newRole == 'Tecnico') $idRole = 2;
-            elseif ($newRole == 'Magazziniere') $idRole = 3;
-            elseif ($newRole == 'Chimico') $idRole = 4;
-            elseif ($newRole == 'Sicurezza') $idRole = 5;
-            
-            // Check if already in Employees
-            $check = $conn->query("SELECT IdEmployee FROM Employees WHERE IdEmployee = $idUser");
-            if ($check->num_rows > 0) {
-                // Already employee, update role only if it's hiring flow (new_role is set and not 'Dipendente')
-                if ($newRole != "Dipendente") {
-                    $stmt = $conn->prepare("UPDATE Employees SET IdRole = ? WHERE IdEmployee = ?");
-                    $stmt->bind_param("ii", $idRole, $idUser);
-                    $stmt->execute();
-                    $stmt->close();
-                }
-            } else {
-                // New Employee (Visitor -> Employee)
-                $stmt = $conn->prepare("INSERT INTO Employees (IdEmployee, IdRole) VALUES (?, ?)");
-                $stmt->bind_param("ii", $idUser, $idRole);
-                $stmt->execute();
-                $stmt->close();
-            }
-        } else {
-            // Demoting to Visitor (Level 1)
-            // Remove from Employees if exists
+            // Rimuoviamo da Employees se presente
             $stmt = $conn->prepare("DELETE FROM Employees WHERE IdEmployee = ?");
             $stmt->bind_param("i", $idUser);
             $stmt->execute();
             $stmt->close();
+
+            // Teleport the user to the Hall (Sector 1) if they are fired
+            // We insert an AUTO_EXIT access to Sector 1 for this user using their Badge
+            $teleportDesc = 'AUTO_EXIT';
+            $gateId = 5; // Gate connecting Hall and outside
+            $sectorId = 1; // Hall
+            $stmtPort = $conn->prepare("INSERT INTO Accesses (Time, Result, IdGate, IdBadge, IdSectorTo) VALUES (NOW(), ?, ?, ?, ?)");
+            $stmtPort->bind_param("siii", $teleportDesc, $gateId, $idBadge, $sectorId);
+            $stmtPort->execute();
+            $stmtPort->close();
+
+            if ($newRole == 'Rifiutato') {
+                $descrizioneLog = "Admin " . $_SESSION['user'] . " ha rifiutato la candidatura di " . $targetEmail;
+            } else {
+                $descrizioneLog = "Admin " . $_SESSION['user'] . " ha licenziato l'utente " . $targetEmail;
+            }
+            
+        } else {
+            // 1. Update Badge Level
+            $query = "UPDATE Badges SET BadgeLevel = ? WHERE IdBadge = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ii", $newLevel, $idBadge);
+            $stmt->execute();
+            $stmt->close();
+
+            // 2. Handle Employees Table
+            if ($newLevel > 1) {
+                
+                // Map Role String to IdRole
+                $idRole = 2; // Default Tecnico
+                if ($newRole == 'Admin' || $newRole == 'Amministratore') $idRole = 1;
+                elseif ($newRole == 'Tecnico') $idRole = 2;
+                elseif ($newRole == 'Magazziniere') $idRole = 3;
+                elseif ($newRole == 'Chimico') $idRole = 4;
+                elseif ($newRole == 'Sorveglianza') $idRole = 5;
+                
+                // Check if already in Employees
+                $check = $conn->query("SELECT IdEmployee FROM Employees WHERE IdEmployee = $idUser");
+                if ($check->num_rows > 0) {
+                    // Already employee, update role only if it's hiring flow (new_role is set and not 'Dipendente')
+                    if ($newRole != "Dipendente") {
+                        $stmt = $conn->prepare("UPDATE Employees SET IdRole = ? WHERE IdEmployee = ?");
+                        $stmt->bind_param("ii", $idRole, $idUser);
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+                } else {
+                    // New Employee (Visitor -> Employee)
+                    $stmt = $conn->prepare("INSERT INTO Employees (IdEmployee, IdRole) VALUES (?, ?)");
+                    $stmt->bind_param("ii", $idUser, $idRole);
+                    $stmt->execute();
+                    $stmt->close();
+                }
+                $descrizioneLog = "Admin " . $_SESSION['user'] . " ha assegnato il ruolo di " . $newRole . " a " . $targetEmail;
+            } else {
+                // Demoting to Visitor (Level 1)
+                // Remove from Employees if exists
+                $stmt = $conn->prepare("DELETE FROM Employees WHERE IdEmployee = ?");
+                $stmt->bind_param("i", $idUser);
+                $stmt->execute();
+                $stmt->close();
+                $descrizioneLog = "Admin " . $_SESSION['user'] . " ha degradato l'utente " . $targetEmail . " a Visitatore";
+            }
         }
 
         //I log
-
-        $descrizioneLog = "Admin " . $_SESSION['user'] . " ha modificato ruolo utente " . $targetEmail . " al livello " . $newLevel;
-        $conn->query("INSERT INTO AdminLogs (Description, DateTime) VALUES ('$descrizioneLog', NOW())");
+        $stmtLog = $conn->prepare("INSERT INTO AdminLogs (Description, DateTime) VALUES (?, NOW())");
+        $stmtLog->bind_param("s", $descrizioneLog);
+        $stmtLog->execute();
+        $stmtLog->close();
+        
         $conn->commit();
         header("Location: dashboard.php?success=ruolo_aggiornato");
         exit();

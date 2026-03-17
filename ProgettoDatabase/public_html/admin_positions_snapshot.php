@@ -13,10 +13,13 @@ if (!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user'];
 
-// Verifica admin (BadgeLevel = 4)
+// Verifica autorizzazione: Admin (Livello 4) o Sorveglianza (Livello 3)
 $authQuery = "
-    SELECT B.BadgeLevel
-    FROM Users U JOIN Badges B ON U.IdBadge = B.IdBadge
+    SELECT B.BadgeLevel, S.Role
+    FROM Users U 
+    JOIN Badges B ON U.IdBadge = B.IdBadge
+    LEFT JOIN Employees E ON U.IdUser = E.IdEmployee
+    LEFT JOIN Shifts S ON E.IdRole = S.IdRole
     WHERE U.Email = ?
 ";
 $stmt = $conn->prepare($authQuery);
@@ -26,7 +29,9 @@ $res = $stmt->get_result();
 $me = $res->fetch_assoc();
 $stmt->close();
 
-if (!$me || (int)$me['BadgeLevel'] !== 4) {
+$isAuthorized = ($me && ((int)$me['BadgeLevel'] === 4 || ($me['Role'] === 'Sorveglianza' && (int)$me['BadgeLevel'] === 3)));
+
+if (!$isAuthorized) {
     http_response_code(403);
     header('Content-Type: application/json');
     echo json_encode(['error' => 'Permessi insufficienti']);
@@ -47,7 +52,7 @@ $sql = "
     INNER JOIN (
         SELECT IdBadge, MAX(IdAccess) AS MaxIdAccess
         FROM Accesses
-        WHERE Result = 'GRANTED'
+        WHERE Result IN ('GRANTED', 'AUTO_EXIT')
         GROUP BY IdBadge
     ) LastA ON LastA.IdBadge = A.IdBadge AND LastA.MaxIdAccess = A.IdAccess
     JOIN Badges B ON A.IdBadge = B.IdBadge
