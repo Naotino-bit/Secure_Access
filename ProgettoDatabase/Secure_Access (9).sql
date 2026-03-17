@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql
--- Creato il: Mar 04, 2026 alle 16:18
+-- Creato il: Mar 17, 2026 alle 16:25
 -- Versione del server: 8.0.44
 -- Versione PHP: 8.3.27
 
@@ -452,7 +452,196 @@ INSERT INTO `Accesses` (`IdAccess`, `Time`, `Result`, `IdGate`, `IdBadge`, `IdSe
 (721, '2026-03-04 17:14:47', 'GRANTED', 6, 67, 27),
 (722, '2026-03-04 17:14:48', 'GRANTED', 35, 67, 33),
 (723, '2026-03-04 17:14:49', 'REQUIRED_MAINTENANCE', 5, 67, 1),
-(724, '2026-03-04 17:14:53', 'LOW_LEVEL', 21, 67, 15);
+(724, '2026-03-04 17:14:53', 'LOW_LEVEL', 21, 67, 15),
+(725, '2026-03-04 17:29:56', 'REQUIRED_MAINTENANCE', 5, 67, 1),
+(726, '2026-03-04 17:29:58', 'GRANTED', 14, 67, 5),
+(727, '2026-03-04 17:30:03', 'GRANTED', 15, 67, 11),
+(728, '2026-03-04 17:30:05', 'GRANTED', 18, 67, 13),
+(729, '2026-03-04 17:30:12', 'DENIED', 18, 67, 11),
+(730, '2026-03-04 17:32:41', 'GRANTED', 18, 67, 11),
+(731, '2026-03-04 17:32:41', 'GRANTED', 20, 67, 33),
+(732, '2026-03-04 17:32:42', 'REQUIRED_MAINTENANCE', 5, 67, 1),
+(733, '2026-03-04 17:35:07', 'GRANTED', 5, 67, 1),
+(734, '2026-03-04 17:35:27', 'GRANTED', 5, 67, 33),
+(735, '2026-03-04 17:35:28', 'GRANTED', 5, 67, 1),
+(736, '2026-03-04 17:35:28', 'GRANTED', 5, 67, 33),
+(737, '2026-03-04 17:35:29', 'GRANTED', 5, 67, 1),
+(738, '2026-03-04 17:35:29', 'GRANTED', 5, 67, 33),
+(739, '2026-03-04 17:35:29', 'GRANTED', 5, 67, 1),
+(740, '2026-03-04 17:35:29', 'GRANTED', 5, 67, 33),
+(741, '2026-03-04 17:35:30', 'GRANTED', 5, 67, 1),
+(742, '2026-03-04 17:35:30', 'GRANTED', 5, 67, 33),
+(743, '2026-03-04 17:35:30', 'GRANTED', 5, 67, 1),
+(744, '2026-03-04 17:35:31', 'GRANTED', 5, 67, 33),
+(745, '2026-03-04 17:35:31', 'GRANTED', 5, 67, 1),
+(746, '2026-03-04 17:35:31', 'GRANTED', 5, 67, 33),
+(747, '2026-03-04 17:35:31', 'GRANTED', 5, 67, 1),
+(748, '2026-03-04 17:35:32', 'GRANTED', 5, 67, 33),
+(749, '2026-03-04 17:35:33', 'GRANTED', 5, 67, 1),
+(750, '2026-03-04 17:35:34', 'GRANTED', 5, 67, 33),
+(751, '2026-03-04 17:35:35', 'GRANTED', 5, 67, 1),
+(752, '2026-03-04 17:35:35', 'GRANTED', 5, 67, 33),
+(753, '2026-03-04 17:35:35', 'GRANTED', 5, 67, 1),
+(754, '2026-03-04 18:07:18', 'GRANTED', 4, 67, 5),
+(755, '2026-03-04 18:07:19', 'GRANTED', 8, 67, 7),
+(756, '2026-03-04 18:08:16', 'GRANTED', 8, 67, 5),
+(757, '2026-03-04 18:08:29', 'DENIED', 8, 67, 7),
+(758, '2026-03-04 18:09:13', 'GRANTED', 8, 67, 7),
+(759, '2026-03-04 18:11:33', 'GRANTED', 8, 67, 5),
+(760, '2026-03-04 18:11:35', 'GRANTED', 14, 67, 33),
+(761, '2026-03-04 18:11:35', 'GRANTED', 21, 67, 15),
+(762, '2026-03-04 18:11:39', 'GRANTED', 23, 67, 17),
+(763, '2026-03-04 18:11:40', 'GRANTED', 23, 67, 15),
+(764, '2026-03-04 18:11:41', 'GRANTED', 21, 67, 33),
+(765, '2026-03-04 18:11:42', 'GRANTED', 5, 67, 1),
+(766, '2026-03-04 18:16:02', 'GRANTED', 5, 67, 33),
+(767, '2026-03-04 18:16:05', 'REQUIRED_MAINTENANCE', 5, 67, 1),
+(768, '2026-03-04 18:16:21', 'GRANTED', 5, 67, 1),
+(769, '2026-03-04 18:22:30', 'REQUIRED_MAINTENANCE', 5, 67, 33),
+(770, '2026-03-04 18:22:37', 'GRANTED', 4, 67, 5),
+(771, '2026-03-04 18:22:38', 'GRANTED', 14, 67, 33),
+(772, '2026-03-04 18:22:39', 'REQUIRED_MAINTENANCE', 5, 67, 1),
+(773, '2026-03-04 18:22:47', 'GRANTED', 14, 67, 5),
+(774, '2026-03-04 18:24:36', 'OFF_HOURS', 5, 69, 1),
+(775, '2026-03-04 18:24:38', 'OFF_HOURS', 14, 69, 5),
+(776, '2026-03-04 18:24:54', 'OFF_HOURS', 14, 69, 5),
+(777, '2026-03-04 18:24:59', 'OFF_HOURS', 14, 69, 5),
+(778, '2026-03-04 18:24:59', 'OFF_HOURS', 14, 69, 5),
+(779, '2026-03-04 18:25:00', 'OFF_HOURS', 14, 69, 5),
+(780, '2026-03-04 18:25:00', 'OFF_HOURS', 14, 69, 5),
+(781, '2026-03-04 18:25:00', 'OFF_HOURS', 14, 69, 5),
+(782, '2026-03-04 18:25:01', 'OFF_HOURS', 14, 69, 5),
+(783, '2026-03-04 18:25:01', 'OFF_HOURS', 14, 69, 5),
+(784, '2026-03-04 18:25:01', 'OFF_HOURS', 14, 69, 5),
+(785, '2026-03-04 18:25:01', 'OFF_HOURS', 14, 69, 5),
+(786, '2026-03-04 18:25:02', 'OFF_HOURS', 14, 69, 5),
+(787, '2026-03-04 18:25:05', 'OFF_HOURS', 20, 69, 11),
+(788, '2026-03-04 17:27:12', 'GRANTED', 5, 69, 1),
+(789, '2026-03-04 18:29:17', 'GRANTED', 4, 69, 5),
+(790, '2026-03-04 18:29:20', 'GRANTED', 8, 69, 7),
+(791, '2026-03-04 18:41:28', 'LOW_LEVEL', 8, 69, 5),
+(792, '2026-03-04 18:41:42', 'GRANTED', 8, 69, 5),
+(793, '2026-03-04 18:41:45', 'GRANTED', 4, 69, 1),
+(794, '2026-03-04 18:47:33', 'GRANTED', 4, 69, 5),
+(795, '2026-03-04 18:47:53', 'GRANTED', 4, 69, 1),
+(796, '2026-03-04 18:50:58', 'GRANTED', 4, 69, 5),
+(797, '2026-03-04 18:51:08', 'GRANTED', 4, 69, 1),
+(798, '2026-03-04 18:51:49', 'GRANTED', 4, 69, 5),
+(799, '2026-03-04 18:52:14', 'GRANTED', 4, 69, 1),
+(800, '2026-03-04 18:54:05', 'GRANTED', 4, 69, 5),
+(801, '2026-03-04 18:54:40', 'GRANTED', 4, 69, 1),
+(802, '2026-03-04 18:58:00', 'GRANTED', 4, 69, 5),
+(803, '2026-03-04 19:10:14', 'GRANTED', 4, 69, 1),
+(804, '2026-03-04 19:10:15', 'GRANTED', 4, 69, 5),
+(805, '2026-03-04 19:10:17', 'GRANTED', 4, 69, 1),
+(806, '2026-03-04 19:29:55', 'GRANTED', 4, 69, 5),
+(807, '2026-03-04 19:29:56', 'GRANTED', 8, 69, 7),
+(808, '2026-03-04 19:30:18', 'GRANTED', 8, 69, 5),
+(809, '2026-03-04 19:30:20', 'GRANTED', 4, 69, 1),
+(810, '2026-03-04 19:54:20', 'GRANTED', 4, 69, 5),
+(811, '2026-03-04 19:54:21', 'GRANTED', 8, 69, 7),
+(812, '2026-03-04 19:58:49', 'GRANTED', 33, 64, 21),
+(813, '2026-03-04 19:58:59', 'GRANTED', 33, 64, 25),
+(814, '2026-03-04 19:59:44', 'GRANTED', 33, 64, 21),
+(815, '2026-03-04 19:59:49', 'GRANTED', 33, 64, 25),
+(816, '2026-03-04 19:59:50', 'GRANTED', 33, 64, 21),
+(817, '2026-03-04 20:00:11', 'GRANTED', 33, 64, 25),
+(818, '2026-03-04 20:00:12', 'GRANTED', 33, 64, 21),
+(819, '2026-03-04 20:04:37', 'GRANTED', 33, 64, 25),
+(820, '2026-03-04 20:31:42', 'GRANTED', 5, 67, 1),
+(821, '2026-03-04 20:31:42', 'GRANTED', 5, 69, 1),
+(822, '2026-03-04 21:32:13', 'GRANTED', 33, 64, 21),
+(823, '2026-03-04 21:32:15', 'GRANTED', 27, 64, 33),
+(824, '2026-03-04 21:32:21', 'GRANTED', 14, 64, 5),
+(825, '2026-03-04 21:32:22', 'GRANTED', 4, 64, 1),
+(826, '2026-03-04 21:32:27', 'GRANTED', 4, 64, 5),
+(827, '2026-03-04 21:32:27', 'GRANTED', 14, 64, 33),
+(828, '2026-03-04 21:32:28', 'GRANTED', 27, 64, 21),
+(829, '2026-03-04 21:32:29', 'GRANTED', 33, 64, 25),
+(830, '2026-03-04 21:32:42', 'GRANTED', 33, 64, 21),
+(831, '2026-03-04 21:32:43', 'GRANTED', 27, 64, 33),
+(832, '2026-03-04 21:32:45', 'GRANTED', 14, 64, 5),
+(833, '2026-03-04 21:32:46', 'GRANTED', 4, 64, 1),
+(834, '2026-03-04 21:32:51', 'GRANTED', 6, 64, 27),
+(835, '2026-03-04 21:32:51', 'GRANTED', 35, 64, 33),
+(836, '2026-03-04 21:36:05', 'GRANTED', 27, 64, 21),
+(837, '2026-03-04 21:36:06', 'GRANTED', 33, 64, 25),
+(838, '2026-03-04 21:38:55', 'OFF_HOURS', 4, 69, 5),
+(839, '2026-03-04 21:39:04', 'OFF_HOURS', 4, 69, 5),
+(840, '2026-03-05 16:58:52', 'GRANTED', 4, 69, 5),
+(841, '2026-03-05 16:58:54', 'GRANTED', 14, 69, 33),
+(842, '2026-03-05 16:58:55', 'LOW_LEVEL', 27, 69, 21),
+(843, '2026-03-05 16:59:03', 'LOW_LEVEL', 27, 69, 21),
+(844, '2026-03-05 17:12:07', 'OFF_HOURS', 27, 69, 21),
+(845, '2026-03-05 16:30:36', 'GRANTED', 5, 69, 1),
+(846, '2026-03-16 13:57:19', 'REQUIRED_MAINTENANCE', 5, 69, 33),
+(847, '2026-03-16 13:57:21', 'GRANTED', 4, 69, 5),
+(848, '2026-03-16 13:57:27', 'GRANTED', 8, 69, 7),
+(849, '2026-03-16 13:58:15', 'GRANTED', 8, 69, 5),
+(850, '2026-03-16 13:58:22', 'GRANTED', 8, 69, 7),
+(851, '2026-03-16 14:01:57', 'GRANTED', 8, 69, 5),
+(852, '2026-03-16 14:01:57', 'DENIED', 10, 69, 9),
+(853, '2026-03-16 14:02:05', 'GRANTED', 11, 69, 9),
+(854, '2026-03-16 14:17:57', 'LOW_LEVEL', 10, 69, 5),
+(855, '2026-03-16 14:19:19', 'GRANTED', 11, 69, 5),
+(856, '2026-03-16 14:19:24', 'GRANTED', 11, 69, 9),
+(857, '2026-03-16 13:58:01', 'AUTO_EXIT', 5, 71, 1),
+(858, '2026-03-16 14:59:42', 'REQUIRED_MAINTENANCE', 5, 71, 33),
+(859, '2026-03-16 14:59:44', 'LOW_LEVEL', 6, 71, 27),
+(860, '2026-03-16 14:59:50', 'LOW_LEVEL', 1, 71, 2),
+(861, '2026-03-16 14:59:52', 'LOW_LEVEL', 4, 71, 5),
+(862, '2026-03-16 14:59:52', 'LOW_LEVEL', 6, 71, 27),
+(863, '2026-03-16 14:59:54', 'LOW_LEVEL', 3, 71, 4),
+(864, '2026-03-16 14:59:56', 'LOW_LEVEL', 6, 71, 27),
+(865, '2026-03-16 14:00:35', 'AUTO_EXIT', 5, 65, 1),
+(866, '2026-03-16 14:10:00', 'AUTO_EXIT', 5, 69, 1),
+(867, '2026-03-16 15:10:36', 'LOW_LEVEL', 10, 69, 5),
+(868, '2026-03-16 14:18:40', 'AUTO_EXIT', 5, 69, 1),
+(869, '2026-03-16 14:21:51', 'AUTO_EXIT', 5, 69, 1),
+(870, '2026-03-16 18:00:16', 'AUTO_EXIT', 5, 73, 1),
+(871, '2026-03-16 19:06:25', 'REQUIRED_MAINTENANCE', 5, 73, 33),
+(872, '2026-03-16 19:13:14', 'GRANTED', 33, 64, 21),
+(873, '2026-03-16 19:13:15', 'GRANTED', 27, 64, 33),
+(874, '2026-03-16 19:13:16', 'GRANTED', 27, 64, 21),
+(875, '2026-03-16 19:13:16', 'GRANTED', 33, 64, 25),
+(876, '2026-03-16 19:13:29', 'GRANTED', 4, 73, 5),
+(877, '2026-03-16 19:13:29', 'GRANTED', 14, 73, 33),
+(878, '2026-03-16 19:13:30', 'GRANTED', 27, 73, 21),
+(879, '2026-03-16 19:13:31', 'GRANTED', 33, 73, 25),
+(880, '2026-03-16 19:14:08', 'GRANTED', 33, 73, 21),
+(881, '2026-03-16 19:14:10', 'GRANTED', 33, 73, 25),
+(882, '2026-03-16 19:23:45', 'GRANTED', 33, 64, 21),
+(883, '2026-03-16 19:23:45', 'GRANTED', 27, 64, 33),
+(884, '2026-03-16 19:23:46', 'GRANTED', 21, 64, 15),
+(885, '2026-03-16 19:23:47', 'GRANTED', 24, 64, 18),
+(886, '2026-03-16 19:24:07', 'GRANTED', 33, 73, 21),
+(887, '2026-03-16 19:24:12', 'GRANTED', 33, 73, 25),
+(888, '2026-03-16 19:24:27', 'DENIED', 24, 64, 15),
+(889, '2026-03-16 19:25:12', 'DENIED', 24, 64, 15),
+(890, '2026-03-16 19:25:13', 'DENIED', 24, 64, 15),
+(891, '2026-03-16 18:26:02', 'AUTO_EXIT', 5, 73, 1),
+(892, '2026-03-16 18:29:54', 'AUTO_EXIT', 5, 71, 1),
+(893, '2026-03-16 18:35:16', 'AUTO_EXIT', 5, 73, 1),
+(894, '2026-03-16 19:55:25', 'GRANTED', 6, 73, 27),
+(895, '2026-03-16 19:55:26', 'DENIED', 35, 73, 33),
+(896, '2026-03-16 19:55:29', 'GRANTED', 6, 73, 1),
+(897, '2026-03-16 19:55:29', 'GRANTED', 4, 73, 5),
+(898, '2026-03-16 19:55:30', 'GRANTED', 14, 73, 33),
+(899, '2026-03-16 19:55:31', 'GRANTED', 27, 73, 21),
+(900, '2026-03-16 19:55:32', 'GRANTED', 33, 73, 25),
+(901, '2026-03-16 20:21:27', 'GRANTED', 24, 64, 15),
+(902, '2026-03-16 20:21:36', 'GRANTED', 26, 64, 20),
+(903, '2026-03-16 20:21:41', 'GRANTED', 26, 64, 15),
+(904, '2026-03-16 20:21:41', 'GRANTED', 21, 64, 33),
+(905, '2026-03-16 20:21:42', 'GRANTED', 35, 64, 27),
+(906, '2026-03-16 20:21:42', 'DENIED', 38, 64, 30),
+(907, '2026-03-16 20:26:26', 'GRANTED', 40, 64, 32),
+(908, '2026-03-16 20:26:28', 'GRANTED', 40, 64, 27),
+(909, '2026-03-16 20:26:29', 'GRANTED', 35, 64, 33),
+(910, '2026-03-16 20:26:30', 'GRANTED', 27, 64, 21),
+(911, '2026-03-16 20:26:31', 'GRANTED', 34, 64, 26),
+(912, '2026-03-16 20:26:32', 'GRANTED', 34, 64, 21),
+(913, '2026-03-16 20:26:32', 'DENIED', 31, 64, 24);
 
 -- --------------------------------------------------------
 
@@ -521,7 +710,38 @@ INSERT INTO `AdminLogs` (`IdLog`, `Description`, `DateTime`) VALUES
 (52, 'Pianificato Task (Restock) ID 22 per Dipendente 60 (2026-02-10 12:29:00 - 2026-03-01 12:29:00)', '2026-02-28 11:30:06'),
 (53, 'Pianificato Task (Maintenance) ID 23 per Dipendente 59 (2026-02-21 12:34:00 - 2026-03-02 12:34:00)', '2026-02-28 11:35:03'),
 (54, 'Task 23 (Maintenance) completata da utente.', '2026-02-28 11:35:06'),
-(55, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente jisawi2413@pazuric.com al livello 2', '2026-02-28 11:54:53');
+(55, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente jisawi2413@pazuric.com al livello 2', '2026-02-28 11:54:53'),
+(56, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente jisawi2413@pazuric.com al livello 1', '2026-03-04 17:38:16'),
+(57, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente jisawi2413@pazuric.com al livello 2', '2026-03-04 17:41:38'),
+(58, 'Task 22 segnalata come SCADUTA dal dipendente hojasih286@gxuzi.com.', '2026-03-04 18:56:07'),
+(59, 'Admin ha riassegnato Task Scaduta 22 -> Nuova Task 24 a Emp 60', '2026-03-04 18:56:23'),
+(60, 'Task 24 (Restock) completata da utente.', '2026-03-04 18:56:36'),
+(61, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente jisawi2413@pazuric.com al livello 1', '2026-03-16 13:17:26'),
+(62, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente jisawi2413@pazuric.com al livello 2', '2026-03-16 13:18:49'),
+(63, 'Admin fabiochiarenza4@gmail.com ha modificato ruolo utente antonio.trifiro05@gmail.com al livello 3', '2026-03-16 13:23:36'),
+(64, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Tecnico a ladic43406@keecs.com', '2026-03-16 13:33:07'),
+(65, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente ladic43406@keecs.com', '2026-03-16 13:38:38'),
+(66, 'Admin fabiochiarenza4@gmail.com ha rifiutato la candidatura di ladic43406@keecs.com', '2026-03-16 13:40:05'),
+(67, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente antonio.trifiro05@gmail.com', '2026-03-16 13:42:32'),
+(68, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Admin a antonio.trifiro05@gmail.com', '2026-03-16 13:42:38'),
+(69, 'Admin fabiochiarenza4@gmail.com ha rifiutato la candidatura di bexenel944@pazard.com', '2026-03-16 13:58:01'),
+(70, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente antonio.trifiro05@gmail.com', '2026-03-16 14:00:35'),
+(71, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Admin a antonio.trifiro05@gmail.com', '2026-03-16 14:01:08'),
+(72, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Tecnico a jisawi2413@pazuric.com', '2026-03-16 14:09:54'),
+(73, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente jisawi2413@pazuric.com', '2026-03-16 14:10:00'),
+(74, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Chimico a jisawi2413@pazuric.com', '2026-03-16 14:18:30'),
+(75, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente jisawi2413@pazuric.com', '2026-03-16 14:18:40'),
+(76, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Chimico a jisawi2413@pazuric.com', '2026-03-16 14:21:47'),
+(77, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente jisawi2413@pazuric.com', '2026-03-16 14:21:51'),
+(78, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Chimico a jisawi2413@pazuric.com', '2026-03-16 14:32:47'),
+(79, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Sicurezza a rickyrusso48@gmail.com', '2026-03-16 17:58:33'),
+(80, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente rickyrusso48@gmail.com', '2026-03-16 18:00:16'),
+(81, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Sorveglianza a rickyrusso48@gmail.com', '2026-03-16 18:06:00'),
+(82, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente rickyrusso48@gmail.com', '2026-03-16 18:26:02'),
+(83, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Sorveglianza a rickyrusso48@gmail.com', '2026-03-16 18:26:16'),
+(84, 'Admin fabiochiarenza4@gmail.com ha rifiutato la candidatura di bexenel944@pazard.com', '2026-03-16 18:29:54'),
+(85, 'Admin fabiochiarenza4@gmail.com ha licenziato l\'utente rickyrusso48@gmail.com', '2026-03-16 18:35:16'),
+(86, 'Admin fabiochiarenza4@gmail.com ha assegnato il ruolo di Sorveglianza a rickyrusso48@gmail.com', '2026-03-16 18:40:33');
 
 -- --------------------------------------------------------
 
@@ -542,11 +762,17 @@ CREATE TABLE `Badges` (
 
 INSERT INTO `Badges` (`IdBadge`, `DateOfIssue`, `ExpirationDate`, `BadgeLevel`) VALUES
 (64, '2026-01-24 11:25:50', '2027-01-24 11:25:50', 4),
-(65, '2026-01-24 11:40:22', '2027-01-24 11:40:22', 1),
+(65, '2026-01-24 11:40:22', '2027-01-24 11:40:22', 3),
 (66, '2026-01-24 12:11:23', '2027-01-24 12:11:23', 2),
-(67, '2026-01-24 18:37:39', '2027-02-26 19:01:20', 3),
+(67, '2026-01-24 18:37:39', '2027-03-16 15:08:56', 2),
 (68, '2026-01-24 18:53:28', '2027-01-24 18:53:28', 1),
-(69, '2026-02-28 12:44:15', '2027-02-28 12:44:15', 2);
+(69, '2026-02-28 12:44:15', '2027-02-28 12:44:15', 2),
+(71, '2026-03-16 14:53:21', '2027-03-16 14:53:21', 1),
+(72, '2026-03-16 15:49:09', '2027-03-16 15:49:09', 1),
+(73, '2026-03-16 15:51:22', '2027-03-16 15:51:22', 3),
+(74, '2026-03-16 19:48:25', '2027-03-16 19:48:25', 1),
+(75, '2026-03-16 19:51:07', '2027-03-16 19:51:07', 1),
+(76, '2026-03-16 19:52:43', '2027-03-16 19:52:43', 1);
 
 -- --------------------------------------------------------
 
@@ -561,6 +787,45 @@ CREATE TABLE `EmergencyEvents` (
   `Type` varchar(128) NOT NULL,
   `IdSector` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dump dei dati per la tabella `EmergencyEvents`
+--
+
+INSERT INTO `EmergencyEvents` (`IdEvent`, `StartTime`, `EndTime`, `Type`, `IdSector`) VALUES
+(1, '2026-03-04 17:08:06', '2026-03-04 17:09:11', 'Fuga di gas', 7),
+(2, '2026-03-04 17:11:29', '2026-03-04 17:11:45', 'Incendio', 24),
+(3, '2026-03-04 17:16:18', '2026-03-04 17:22:50', 'Incendio', 24),
+(4, '2026-03-04 17:30:22', '2026-03-04 17:33:39', 'Incendio', 7),
+(5, '2026-03-04 17:30:25', '2026-03-04 17:33:36', 'Incendio', 7),
+(6, '2026-03-04 17:30:42', '2026-03-04 17:33:29', 'Fuga di gas', 7),
+(7, '2026-03-04 17:32:33', '2026-03-04 17:33:34', 'Incendio', 7),
+(8, '2026-03-04 17:33:44', '2026-03-04 17:33:48', 'Incendio', 7),
+(9, '2026-03-04 18:30:11', '2026-03-04 18:30:30', 'Incendio', 7),
+(10, '2026-03-16 19:20:57', '2026-03-16 19:24:27', 'Fuga di gas', 30),
+(11, '2026-03-16 19:24:38', '2026-03-16 19:26:16', 'Incendio', 7),
+(12, '2026-03-16 19:26:19', '2026-03-16 20:26:19', 'Fuga di gas', 24),
+(13, '2026-03-16 19:27:16', '2026-03-16 20:27:16', 'Incendio', 1),
+(14, '2026-03-16 19:27:17', '2026-03-16 20:27:17', 'Incendio', 1),
+(15, '2026-03-16 19:27:19', '2026-03-16 20:27:19', 'Incendio', 1),
+(16, '2026-03-16 19:27:20', '2026-03-16 20:27:20', 'Incendio', 1),
+(17, '2026-03-16 19:27:22', '2026-03-16 20:27:22', 'Incendio', 1),
+(18, '2026-03-16 19:27:23', '2026-03-16 20:27:23', 'Incendio', 1),
+(19, '2026-03-16 19:27:25', '2026-03-16 20:27:25', 'Incendio', 1),
+(20, '2026-03-16 19:27:26', '2026-03-16 20:27:26', 'Incendio', 1),
+(21, '2026-03-16 19:27:28', '2026-03-16 20:27:28', 'Incendio', 1),
+(22, '2026-03-16 19:27:29', '2026-03-16 20:27:29', 'Incendio', 1),
+(23, '2026-03-16 19:27:31', '2026-03-16 20:27:31', 'Incendio', 1),
+(24, '2026-03-16 19:27:32', '2026-03-16 20:27:32', 'Incendio', 1),
+(25, '2026-03-16 19:27:34', '2026-03-16 20:27:34', 'Incendio', 1),
+(26, '2026-03-16 19:27:35', '2026-03-16 20:27:35', 'Incendio', 1),
+(27, '2026-03-16 19:27:37', '2026-03-16 20:27:37', 'Incendio', 1),
+(28, '2026-03-16 19:27:38', '2026-03-16 20:27:38', 'Incendio', 1),
+(29, '2026-03-16 19:27:40', '2026-03-16 20:27:40', 'Incendio', 1),
+(30, '2026-03-16 19:27:43', '2026-03-16 20:27:43', 'Incendio', 1),
+(31, '2026-03-16 19:27:44', '2026-03-16 20:27:44', 'Incendio', 1),
+(32, '2026-03-16 19:27:46', '2026-03-16 20:27:46', 'Incendio', 1),
+(33, '2026-03-16 19:27:47', '2026-03-16 20:27:47', 'Incendio', 1);
 
 -- --------------------------------------------------------
 
@@ -579,9 +844,11 @@ CREATE TABLE `Employees` (
 
 INSERT INTO `Employees` (`IdEmployee`, `IdRole`) VALUES
 (57, 1),
+(58, 1),
 (59, 2),
 (60, 3),
-(62, 4);
+(62, 4),
+(66, 5);
 
 -- --------------------------------------------------------
 
@@ -606,43 +873,43 @@ INSERT INTO `Gates` (`IdGate`, `SecurityLevel`, `Wear`, `IdSectorA`, `IdSectorB`
 (1, 3, 2, 1, 2, 0),
 (2, 1, 6, 1, 3, 0),
 (3, 1, 2, 1, 4, 0),
-(4, 2, 15, 1, 5, 0),
-(5, 1, 34, 1, 33, 0),
-(6, 1, 8, 1, 27, 0),
+(4, 2, 41, 1, 5, 0),
+(5, 1, 101, 1, 33, 0),
+(6, 1, 11, 1, 27, 0),
 (7, 2, 0, 5, 6, 0),
-(8, 2, 10, 5, 7, 0),
+(8, 2, 23, 5, 7, 0),
 (9, 2, 2, 5, 8, 0),
 (10, 2, 3, 5, 9, 1),
-(11, 2, 11, 5, 9, 0),
+(11, 2, 14, 5, 9, 0),
 (12, 2, 0, 5, 10, 0),
 (13, 2, 2, 5, 10, 0),
-(14, 2, 13, 5, 33, 0),
-(15, 2, 4, 5, 11, 0),
+(14, 2, 23, 5, 33, 0),
+(15, 2, 5, 5, 11, 0),
 (16, 2, 0, 11, 12, 0),
 (17, 2, 2, 11, 12, 0),
-(18, 2, 2, 11, 13, 0),
+(18, 2, 4, 11, 13, 0),
 (19, 2, 2, 11, 14, 0),
-(20, 2, 4, 11, 33, 0),
-(21, 4, 0, 15, 33, 0),
+(20, 2, 5, 11, 33, 0),
+(21, 4, 4, 15, 33, 0),
 (22, 4, 0, 15, 16, 0),
-(23, 4, 0, 15, 17, 0),
-(24, 4, 0, 15, 18, 0),
+(23, 4, 2, 15, 17, 0),
+(24, 4, 2, 15, 18, 0),
 (25, 4, 0, 18, 19, 0),
-(26, 4, 0, 15, 20, 0),
-(27, 3, 29, 21, 33, 0),
+(26, 4, 2, 15, 20, 0),
+(27, 3, 39, 21, 33, 0),
 (28, 3, 0, 21, 22, 0),
 (29, 3, 2, 21, 22, 0),
 (30, 3, 0, 21, 23, 0),
 (31, 3, 0, 21, 24, 0),
 (32, 3, 2, 21, 24, 0),
-(33, 3, 19, 21, 25, 0),
-(34, 3, 4, 21, 26, 0),
-(35, 1, 15, 27, 33, 0),
+(33, 3, 40, 21, 25, 0),
+(34, 3, 6, 21, 26, 0),
+(35, 1, 18, 27, 33, 0),
 (36, 2, 0, 27, 28, 0),
 (37, 1, 2, 27, 29, 0),
 (38, 1, 0, 27, 30, 0),
 (39, 1, 0, 27, 31, 0),
-(40, 1, 0, 27, 32, 0);
+(40, 1, 2, 27, 32, 0);
 
 -- --------------------------------------------------------
 
@@ -661,8 +928,8 @@ CREATE TABLE `Inventory` (
 --
 
 INSERT INTO `Inventory` (`IdItem`, `Description`, `Quantity`) VALUES
-(1, 'Componenti', 7),
-(2, 'Sostanze chimiche', 99);
+(1, 'Componenti', 27),
+(2, 'Sostanze chimiche', 42);
 
 -- --------------------------------------------------------
 
@@ -687,7 +954,10 @@ INSERT INTO `MaintenanceRequests` (`IdRequest`, `Status`, `Priority`, `CreatedAt
 (14, 'Completed', 'Low', '2026-01-25 14:25:44', 5),
 (15, 'Completed', 'Low', '2026-02-26 19:07:26', 5),
 (16, 'Completed', 'Medium', '2026-02-28 11:34:32', 5),
-(17, 'Pending', 'Low', '2026-02-28 16:51:26', 5);
+(17, 'Pending', 'High', '2026-03-04 17:16:21', 5),
+(18, 'Pending', 'Low', '2026-03-04 18:30:20', 4),
+(19, 'Pending', 'Low', '2026-03-04 20:36:05', 27),
+(20, 'Pending', 'Low', '2026-03-16 18:13:16', 33);
 
 -- --------------------------------------------------------
 
@@ -743,7 +1013,8 @@ INSERT INTO `RestockTasks` (`IdTask`, `IdItem`, `Quantity`) VALUES
 (16, 1, 10),
 (17, 1, 90),
 (18, 1, 10),
-(22, 1, 20);
+(22, 1, 20),
+(24, 1, 20);
 
 -- --------------------------------------------------------
 
@@ -817,7 +1088,7 @@ INSERT INTO `Shifts` (`IdRole`, `Role`, `Start`, `End`) VALUES
 (2, 'Tecnico', '09:00:00', '17:00:00'),
 (3, 'Magazziniere', '14:00:00', '20:00:00'),
 (4, 'Chimico', '09:00:00', '17:00:00'),
-(5, 'Sicurezza', '00:00:00', '23:59:59');
+(5, 'Sorveglianza', '00:00:00', '23:59:59');
 
 -- --------------------------------------------------------
 
@@ -858,8 +1129,9 @@ INSERT INTO `Tasks` (`IdTask`, `Type`, `StartTime`, `EndTime`, `IdEmployee`, `St
 (19, 'Maintenance', '2026-01-25 15:26:00', '2026-01-25 15:27:00', 59, 'Cancelled'),
 (20, 'Maintenance', '2026-01-25 15:27:00', '2026-01-25 16:27:00', 59, 'Completed'),
 (21, 'Maintenance', '2026-02-27 12:20:00', '2026-03-01 12:20:00', 59, 'Completed'),
-(22, 'Restock', '2026-02-10 12:29:00', '2026-03-01 12:29:00', 60, 'Pending'),
-(23, 'Maintenance', '2026-02-21 12:34:00', '2026-03-02 12:34:00', 59, 'Completed');
+(22, 'Restock', '2026-02-10 12:29:00', '2026-03-01 12:29:00', 60, 'Cancelled'),
+(23, 'Maintenance', '2026-02-21 12:34:00', '2026-03-02 12:34:00', 59, 'Completed'),
+(24, 'Restock', '2026-03-04 19:56:00', '2026-03-04 20:56:00', 60, 'Completed');
 
 -- --------------------------------------------------------
 
@@ -888,8 +1160,10 @@ INSERT INTO `Users` (`IdUser`, `Email`, `Password`, `Name`, `Surname`, `DateBirt
 (58, 'antonio.trifiro05@gmail.com', '$2y$10$7KckJqmls/i.vWfz1PV0eeExwVtDYn.dOh1o98evJWu3z0xkvynA6', 'Antonio', 'Trifirò', '2026-01-01', 65, 1, NULL),
 (59, 'nefeyi8884@1200b.com', '$2y$10$tc0SXznlpLHD/CXf5YXTI.QP82XHi5rg6.TXtZjNqhSB5gEEp2QRy', 'Carmelo', 'Spia', '1990-03-13', 66, 1, NULL),
 (60, 'hojasih286@gxuzi.com', '$2y$10$UBwL0EjiGz5WyrSFj0jnQ.mku7roKm7f7.XN1FsMQB8W247H//Nri', 'Giuseppe', 'Pacco', '2001-09-11', 67, 1, NULL),
-(61, 'febatog441@coswz.com', '$2y$10$ExWPQQzY2oKxhH1l99NppO2W4.xrrprDmiCCD8zpDitWybMl8.jP.', 'Mattia', 'Schiavo Mai assunto', '2026-01-23', 68, 1, NULL),
-(62, 'jisawi2413@pazuric.com', '$2y$10$FTPONMkj1Jf7LnjcRNYqfujY/pQ7leY0PyIpR8QMNgOoPAL.3UgWu', 'Walter', 'Bianco', '1958-09-07', 69, 1, NULL);
+(61, 'febatog441@coswz.com', '$2y$10$ExWPQQzY2oKxhH1l99NppO2W4.xrrprDmiCCD8zpDitWybMl8.jP.', 'Lucio', 'Aspettative', '2026-01-23', 68, 1, NULL),
+(62, 'jisawi2413@pazuric.com', '$2y$10$FTPONMkj1Jf7LnjcRNYqfujY/pQ7leY0PyIpR8QMNgOoPAL.3UgWu', 'Walter', 'Bianco', '1958-09-07', 69, 1, NULL),
+(66, 'rickyrusso48@gmail.com', '$2y$10$LoHs70UHXCjsHGeu.9Lk5.Iz5ioc3TXNCIMwn/3SNJxmGZl70bGqG', 'Giulio', 'Tovvisto', '2005-12-06', 73, 1, NULL),
+(69, 'bexenel944@pazard.com', '$2y$10$/O5/6xuJPEKDY3sd/UjvCeeK2DqqBscwlnOLlP1b2tUmD20QNNDzm', 'Paolo', 'Incompetente', '2026-03-11', 76, 0, '7de5d8a88ac2a74abe37335a274fde88');
 
 -- --------------------------------------------------------
 
@@ -1045,7 +1319,39 @@ INSERT INTO `Warnings` (`IdWarning`, `Reason`, `IdAccess`) VALUES
 (135, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 707),
 (136, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 713),
 (137, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 714),
-(138, 'Tentativo accesso non autorizzato: Livello insufficiente', 724);
+(138, 'Tentativo accesso non autorizzato: Livello insufficiente', 724),
+(139, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 774),
+(140, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 775),
+(141, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 776),
+(142, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 777),
+(143, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 778),
+(144, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 779),
+(145, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 780),
+(146, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 781),
+(147, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 782),
+(148, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 783),
+(149, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 784),
+(150, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 785),
+(151, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 786),
+(152, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 787),
+(153, 'Uscita Automatica: +30min dalla fine del turno', 788),
+(154, 'Tentativo accesso non autorizzato: Livello insufficiente', 791),
+(155, 'Uscita Automatica: +30min dalla fine del turno', 820),
+(156, 'Uscita Automatica: +30min dalla fine del turno', 821),
+(157, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 838),
+(158, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 839),
+(159, 'Tentativo accesso non autorizzato: Livello insufficiente', 842),
+(160, 'Tentativo accesso non autorizzato: Livello insufficiente', 843),
+(161, 'Tentativo accesso non autorizzato: Fuori orario di lavoro', 844),
+(162, 'Uscita Automatica: +30min dalla fine del turno', 845),
+(163, 'Tentativo accesso non autorizzato: Livello insufficiente', 854),
+(164, 'Tentativo accesso non autorizzato: Livello insufficiente', 859),
+(165, 'Tentativo accesso non autorizzato: Livello insufficiente', 860),
+(166, 'Tentativo accesso non autorizzato: Livello insufficiente', 861),
+(167, 'Tentativo accesso non autorizzato: Livello insufficiente', 862),
+(168, 'Tentativo accesso non autorizzato: Livello insufficiente', 863),
+(169, 'Tentativo accesso non autorizzato: Livello insufficiente', 864),
+(170, 'Tentativo accesso non autorizzato: Livello insufficiente', 867);
 
 --
 -- Indici per le tabelle scaricate
@@ -1161,31 +1467,31 @@ ALTER TABLE `Warnings`
 -- AUTO_INCREMENT per la tabella `Accesses`
 --
 ALTER TABLE `Accesses`
-  MODIFY `IdAccess` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=725;
+  MODIFY `IdAccess` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=914;
 
 --
 -- AUTO_INCREMENT per la tabella `AdminLogs`
 --
 ALTER TABLE `AdminLogs`
-  MODIFY `IdLog` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `IdLog` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT per la tabella `Badges`
 --
 ALTER TABLE `Badges`
-  MODIFY `IdBadge` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `IdBadge` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT per la tabella `EmergencyEvents`
 --
 ALTER TABLE `EmergencyEvents`
-  MODIFY `IdEvent` int NOT NULL AUTO_INCREMENT;
+  MODIFY `IdEvent` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT per la tabella `Employees`
 --
 ALTER TABLE `Employees`
-  MODIFY `IdEmployee` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `IdEmployee` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT per la tabella `Gates`
@@ -1203,7 +1509,7 @@ ALTER TABLE `Inventory`
 -- AUTO_INCREMENT per la tabella `MaintenanceRequests`
 --
 ALTER TABLE `MaintenanceRequests`
-  MODIFY `IdRequest` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `IdRequest` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT per la tabella `Sectors`
@@ -1221,19 +1527,19 @@ ALTER TABLE `Shifts`
 -- AUTO_INCREMENT per la tabella `Tasks`
 --
 ALTER TABLE `Tasks`
-  MODIFY `IdTask` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `IdTask` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT per la tabella `Users`
 --
 ALTER TABLE `Users`
-  MODIFY `IdUser` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `IdUser` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT per la tabella `Warnings`
 --
 ALTER TABLE `Warnings`
-  MODIFY `IdWarning` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
+  MODIFY `IdWarning` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
 
 --
 -- Limiti per le tabelle scaricate
