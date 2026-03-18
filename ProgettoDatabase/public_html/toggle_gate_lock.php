@@ -1,10 +1,10 @@
 <?php
-// Script per il toggle (Blocca/Sblocca) di un gate da parte dell'admin
+// Qui l'admin decide se bloccare o sbloccare una porta
 header('Content-Type: application/json');
 
 require("db_connection.php");
 
-// Recupero dati JSON
+// Leggiamo quello che ci ha mandato l'admin
 $json_data = file_get_contents('php://input');
 $request_data = json_decode($json_data, true);
 
@@ -16,7 +16,7 @@ if (!isset($request_data['gate_id']) || !isset($request_data['is_locked'])) {
 $gateId = (int)$request_data['gate_id'];
 $isLocked = (int)$request_data['is_locked'] ? 1 : 0;
 
-// Esegui update
+// Cambiamo la serratura nel database
 $stmt = $conn->prepare("UPDATE Gates SET IsLocked = ? WHERE IdGate = ?");
 $stmt->bind_param("ii", $isLocked, $gateId);
 

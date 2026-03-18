@@ -3,7 +3,7 @@
 
 <h3>Visitatori Attuali</h3>
 <?php
-    // Usiamo la stessa logica dell'Admin per coerenza, ma mostriamo solo i dati
+    // Facciamo vedere chi sta visitando la struttura
     $readQuery1 = "
         SELECT U.Name, U.Surname, U.Email, U.is_verified, B.ExpirationDate 
         FROM Users U
@@ -48,7 +48,7 @@
 
 <h3 style="margin-top: 40px;">Colleghi e Staff</h3>
 <?php
-    // Query per vedere gli altri dipendenti (escluso sé stesso)
+    // Vediamo chi sono i nostri colleghi
     $readQuery2 = "
         SELECT U.Name, U.Surname, U.Email, E.Role, B.BadgeLevel 
         FROM Users U 
@@ -59,7 +59,7 @@
     ";
     
     $stmtRead2 = $conn->prepare($readQuery2);
-    $stmtRead2->bind_param("s", $email); // $email arriva dalla dashboard principale
+    $stmtRead2->bind_param("s", $email);
     $stmtRead2->execute();
     $resRead2 = $stmtRead2->get_result();
 ?>
@@ -80,7 +80,7 @@
                     <td><?php echo htmlspecialchars($row['Email']); ?></td>
                     <td>
                         <?php 
-                            // Etichette colorate solo per bellezza visiva
+                            // Mettiamo un'etichetta colorata così si capisce meglio
                             if($row['BadgeLevel'] == 3) echo "<span class='role-label role-admin'>ADMIN</span>";
                             else echo "<span class='role-label role-dip'>DIPENDENTE</span>";
                         ?>

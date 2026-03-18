@@ -2,7 +2,7 @@
 require "db_connection.php";
 session_start();
 
-// Eseguiamo il controllo automatico per far uscire i dipendenti fuori orario
+// Cacciamo via chi è fuori orario (auto-teleport)
 require_once "includes/auto_teleport.php";
 
 $message = "";
@@ -15,7 +15,7 @@ if (!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user']; 
 
-// Recupero dati utente, LIVELLO BADGE e ORARI TURNO
+// Prendiamo info utente, badge e turni
 $query = "
     SELECT U.Name, U.Surname, U.IdBadge, B.BadgeLevel, B.ExpirationDate, B.DateOfIssue, S.Start, S.End, S.Role
     FROM Users U 
@@ -38,7 +38,7 @@ $stmt->close();
 
 $isSurveillance = isset($badge['Role']) && $badge['Role'] === 'Sorveglianza';
 
-// Se l'admin_mode non è settato nella sessione, lo inizializziamo in base all'ultima posizione
+// Se non sappiamo se è in monitor o interactive, decidiamo in base a dove sta
 if ($isSurveillance && !isset($_SESSION['admin_mode'])) {
     $LastPosTempQuery = $conn->prepare("SELECT IdSectorTo FROM Accesses WHERE IdBadge = ? AND Result IN ('GRANTED', 'AUTO_EXIT') ORDER BY IdAccess DESC LIMIT 1;");
     $LastPosTempQuery->bind_param("i", $badge['IdBadge']);
@@ -53,12 +53,12 @@ if ($isSurveillance && !isset($_SESSION['admin_mode'])) {
 
 $isMonitorMode = $isSurveillance && (isset($_SESSION['admin_mode']) && $_SESSION['admin_mode'] === 'monitor');
 
-// Per l'ADMIN (o Sicurezza) in sola visualizzazione (richiesta GET) evitiamo query pesanti sulla tabella Accesses
+// Se è in modalità monitor (solo occhio), non serve fare query pesanti sugli accessi
 if ($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $LastPos = 1;              // Valore neutro, la posizione admin non è rilevante
     $LastPositionResult = null;
 } else {
-    // 2. Troviamo l'ultima posizione dell'utente; se non esiste è fuori dalla struttura
+    // Cerchiamo dove stava l'ultima volta, altrimenti lo mettiamo nella hall
     $LastPositionQuery = $conn->prepare("SELECT IdSectorTo 
                                          FROM Accesses 
                                          WHERE IdBadge = ? AND RESULT IN ('GRANTED', 'AUTO_EXIT') 
@@ -69,7 +69,7 @@ if ($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $LastPositionResult = $LastPositionQuery->get_result();
     $row = $LastPositionResult->fetch_assoc();
     if (!$row) { 
-        // Appena entrato nella struttura, sei nella hall
+        // Se non ha log, è appena entrato (Hall)
         $LastPos = 1;
     } else {
         $LastPos = $row["IdSectorTo"];
@@ -78,7 +78,7 @@ if ($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     $LastPositionQuery->close();
 }
 
-// Recupero tutte le info dei gate per l'interfaccia JS (mappa)
+// Carichiamo i dati di tutti i varchi per la mappa
 $allGatesQuery = $conn->query("SELECT IdGate, SecurityLevel, IdSectorA, IdSectorB, Wear, IsLocked FROM Gates");
 $allGatesData = [];
 if ($allGatesQuery) {
@@ -88,10 +88,10 @@ if ($allGatesQuery) {
 }
 $userBadgeLevel = isset($badge['BadgeLevel']) ? (int)$badge['BadgeLevel'] : 0;
 
-// 3. Recupero tutte le posizioni dove l'utente può andare (solo se non è admin viewer)
+// Vediamo dove può muoversi (se non è in monitor mode)
 $accessibleSectors = [];
 if (!($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST')) {
-    // === GESTIONE EMERGENZE FRONTEND ==============================
+    // Occhio alle emergenze
     $emergencyQuery = $conn->query("SELECT * FROM EmergencyEvents WHERE NOW() BETWEEN StartTime AND EndTime");
     $isFireActive = false;
     $gasLeakRooms = [];
@@ -100,7 +100,7 @@ if (!($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST')) {
         if ($ev['Type'] === 'Fuga di gas') $gasLeakRooms[] = $ev['IdSector'];
     }
 
-    // Troviamo tutte le porte collegate
+    // Cerchiamo le porte vicine
     $PossiblePositionQuery = $conn->prepare("SELECT g.IdGate, g.SecurityLevel, g.IdSectorA, g.IdSectorB, g.Wear, g.IsLocked 
                                              FROM Gates g 
                                              WHERE (IdSectorA = ? OR IdSectorB = ?)");
@@ -113,18 +113,18 @@ if (!($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST')) {
         
         $isAccessible = (isset($badge['BadgeLevel']) && $badge['BadgeLevel'] >= $row['SecurityLevel'] && $row['Wear'] < 100 && $row['IsLocked'] == 0);
         
-        // Regola utente pending
+        // Se è ancora in attesa (pending), lo blocchiamo nella hall
         if (isset($badge['BadgeLevel']) && $badge['BadgeLevel'] == 1 && $LastPos == 1 && $IdSectorTo != 1) {
             $isAccessible = false;
         }
 
-        // Sovrascrittura per Emergenze
+        // Gestiamo le eccezioni per Incendio/Gas
         if ($isFireActive) {
             $isAccessible = true;
         } elseif (in_array($IdSectorTo, $gasLeakRooms)) {
-            $isAccessible = false; // NON entrare dove c'è fuga di gas
+            $isAccessible = false; // Non farlo entrare se c'è gas!
         } elseif (in_array($LastPos, $gasLeakRooms)) {
-            $isAccessible = true; // SCAPPA se sei nella stanza con fuga di gas
+            $isAccessible = true; // Fallo scappare se è già dentro al gas
         }
 
         if ($isAccessible) {
@@ -136,24 +136,21 @@ if (!($isMonitorMode && $_SERVER['REQUEST_METHOD'] !== 'POST')) {
     $PossiblePositionResult = null;
 }
 
-// Assumiamo che $conn, $badge, $LastPos siano già definiti sopra; per $PossiblePositionResult
-// vale solo per le richieste non-admin / POST.
 
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // === 1. GESTIONE JSON INVECE DI POST STANDARD ===
+// Solo per chi non è admin e manda un POST
     $json_data = file_get_contents('php://input');
     $request_data = json_decode($json_data, true);
     
-    // I dati sono inviati da JS come: { sector_id : room.id }
+    // Il JS ci manda l'ID del settore cliccato
     $clicked_sector_id = $request_data['sector_id'] ?? null;
     
-    // Preparo la risposta JSON di default
+    // Risposta base per il client
     header('Content-Type: application/json');
     $response = ['status' => 'error', 'message' => 'Errore sconosciuto.'];
     
-    // === 2. TROVA IL GATE ASSOCIATO ALLA STANZA CLICCATA ===
-    // Dobbiamo trovare TUTTI i gate collegati alla posizione corrente, INDIPENDENTEMENTE dal livello del badge
-    // per poter distinguere tra "Non esiste passaggio" (Not Reachable) e "Passaggio esiste ma livello basso" (LOW_LEVEL).
+    // Cerchiamo il varco giusto per la stanza scelta
+    // Dobbiamo beccare tutti i varchi vicini, poi vediamo se ha i permessi
     
     $AllGatesQuery = $conn->prepare("SELECT g.IdGate, g.SecurityLevel, g.IdSectorA, g.IdSectorB, g.Wear, g.IsLocked
                                      FROM Gates g 
@@ -182,14 +179,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $AllGatesQuery->close();
 
 
-    // === 3. ESECUZIONE LOGICA DI CONTROLLO ===
+    // Qui parte il controllo degli accessi
 
     if (isset($PossibleGates[$clicked_sector_id])) {
         $sectorGates = $PossibleGates[$clicked_sector_id];
-        $SectorId = $clicked_sector_id; // Questo è il settore di destinazione
+        $SectorId = $clicked_sector_id; 
         $timestamp = date("Y-m-d H:i:s");
         
-        // === GESTIONE EMERGENZE ===============================================
+        // Controlli speciali per le emergenze (incendio/gas)
         $emergencyQuery = $conn->query("SELECT * FROM EmergencyEvents WHERE NOW() BETWEEN StartTime AND EndTime");
         $isFireActive = false;
         $isGasLeakCurrentRoom = false;
@@ -205,12 +202,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($ev['IdSector'] == $SectorId) $isGasLeakDestRoom = true;
             }
         }
-        // ======================================================================
 
-        // *** Esegui la tua logica di controllo (Badge Scaduto, Livello Insufficiente, etc.) ***
 
         if ($isFireActive) {
-            // Find a gate that is NOT worn out (Wear < 100)
+            // Cerchiamo un varco che funzioni ancora
             $validFireGate = null;
             foreach ($sectorGates as $GateInfo) {
                 if ($GateInfo['wear'] < 100) {
@@ -264,12 +259,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $esito = "EXPIRED";
             $GateId = $sectorGates[0]['gate'];
         } elseif ($badge['BadgeLevel'] == 1 && $LastPos == 1 && $SectorId != 1) {
-            // BLOCCO UTENTI PENDING (LEVEL 1) NELLA HALL
+            // Se è pending non lo facciamo muovere dalla Hall
             $response['message'] = "ACCESSO NEGATO: Utente in attesa di assunzione. Sei confinato nella Hall fino all'assegnazione di un ruolo.";
             $esito = "LOW_LEVEL"; 
             $GateId = $sectorGates[0]['gate'];
         } else {
-            // Check Shifts (Orario Lavorativo) for users with level > 1
+            // Vediamo se è nel suo orario di lavoro
             $isWorkingHours = true;
             if ($badge['BadgeLevel'] > 1 && isset($badge['Start']) && isset($badge['End'])) {
                 $currentTime = date('H:i:s');
@@ -285,7 +280,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $esito = "OFF_HOURS";
                 $GateId = $sectorGates[0]['gate'];
             } else {
-                // Logica multi-porta per trovare un gate valido
+                // Se ci sono più porte, cerchiamo quella buona
                 $grantedGate = null;
                 $bestEsito = "LOW_LEVEL";
                 $bestMessage = "ACCESSO NEGATO: Livello insufficiente per questa zona.";
@@ -296,7 +291,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $GateLocked = $GateInfo['isLocked'];
                     $currentGateId = $GateInfo['gate'];
 
-                    // 1. Check Usura
+                    // Usura OK?
                     $GateWearStatus = $conn->query("SELECT Wear FROM Gates WHERE IdGate = $currentGateId")->fetch_assoc();
                     if ($GateWearStatus['Wear'] >= 100) {
                         $bestEsito = "REQUIRED_MAINTENANCE";
@@ -304,14 +299,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                         continue;
                     }
 
-                    // 2. Check Porta Bloccata
+                    // È bloccata manualmente?
                     if ($GateLocked == 1) {
                         $bestEsito = "DENIED";
                         $bestMessage = "ACCESSO NEGATO: Questo varco è momentaneamente BLOCCATO dalla sorveglianza.";
                         continue;
                     }
 
-                    // 3. Check Livello di Sicurezza
+                    // Ha il badge abbastanza alto?
                     if ($badge['BadgeLevel'] >= $GateLevel) {
                         $grantedGate = $currentGateId;
                         break; 
@@ -335,18 +330,18 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
         
-        // === 4. LOG DEGLI ACCESSI & BUSINESS LOGIC ===
+        // Registriamo tutto quello che è successo
         if (isset($GateId) && isset($SectorId)) {
             $timestamp = date("Y-m-d H:i:s");
-            // Nota: I controlli di usura/blocco/permesso sono stati eseguiti sopra e l'esito finale definito
+            // I permessi li abbiamo già visti sopra
             
             $logStmt = $conn->prepare("INSERT INTO Accesses (Time, Result, IdGate, IdBadge, IdSectorTo) VALUES (?, ?, ?, ?, ?)");
             $logStmt->bind_param("ssiii", $timestamp, $esito, $GateId, $badge['IdBadge'], $SectorId);
             $logStmt->execute();
-            $idAccess = $logStmt->insert_id; // Recupero ID dell'accesso appena creato
+            $idAccess = $logStmt->insert_id; // ID per i warning
             $logStmt->close();
 
-            // A. GESTIONE WARNINGS (Tentativo non autorizzato)
+            // Segnamo se ha provato a forzare la mano
             if ($esito == "LOW_LEVEL") {
                 $warnStmt = $conn->prepare("INSERT INTO Warnings (Reason, IdAccess) VALUES ('Tentativo accesso non autorizzato: Livello insufficiente', ?)");
                 $warnStmt->bind_param("i", $idAccess);
@@ -359,28 +354,28 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $warnStmt->close();
             }
 
-            // B. GESTIONE USURA & MANUTENZIONE (Solo su accesso riuscito)
+            // Se è passato, aggiorniamo l'usura della porta
             if ($esito == "GRANTED") {
-                // 1. Incrementa USURA
+                // aumenta usura
                 $wearStmt = $conn->prepare("UPDATE Gates SET Wear = Wear + 1 WHERE IdGate = ?");
                 $wearStmt->bind_param("i", $GateId);
                 $wearStmt->execute();
                 $wearStmt->close();
 
-                // 2. Controllo Soglia Manutenzione (es. ogni 100 utilizzi)
+                // Se è rotta, chiamiamo la manutenzione
                 // Recupero il nuovo valore di Wear
                 $checkWear = $conn->query("SELECT Wear FROM Gates WHERE IdGate = $GateId")->fetch_assoc();
                 $currentWear = $checkWear['Wear'];
 
                 if ($currentWear >= 100) {
-                    // FIX DUPLICATI: Controlla Pending o Assigned
+                    // Evitiamo doppioni (Pending o Assigned)
                     $checkReq = $conn->query("SELECT IdRequest FROM MaintenanceRequests WHERE IdGate = $GateId AND Status IN ('Pending', 'Assigned')");
                     
                     if ($checkReq->num_rows == 0) {
                         // Inseriamo richiesta se usura è alta
                         // STATUS = Pending (come richiesto)
                         // PRIORITY = High
-                        // NON RESETTIAMO USURA QUI! (Il reset avverrà alla riparazione)
+                        // l'usura la resetta chi ripara
                         
                         $maintStmt = $conn->prepare("INSERT INTO MaintenanceRequests (Priority, Status, CreatedAt, IdGate) VALUES ('High', 'Pending', NOW(), ?)");
                         $maintStmt->bind_param("i", $GateId);
@@ -393,14 +388,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $maintStmt->close();
                     }
                 } elseif ($currentWear >= 66) {
-                    // FIX DUPLICATI: Controlla Pending o Assigned
+                    // Evitiamo doppioni (Pending o Assigned)
                     $checkReq = $conn->query("SELECT IdRequest FROM MaintenanceRequests WHERE IdGate = $GateId AND Status IN ('Pending', 'Assigned')");
                     
                     if ($checkReq->num_rows == 0) {
                         // Inseriamo richiesta se usura è alta
-                        // STATUS = Pending (come richiesto)
+                        // STATUS = Pending
                         // PRIORITY = High
-                        // NON RESETTIAMO USURA QUI! (Il reset avverrà alla riparazione)
+                        // l'usura la resetta chi ripara
                         
                         $maintStmt = $conn->prepare("INSERT INTO MaintenanceRequests (Priority, Status, CreatedAt, IdGate) VALUES ('Medium', 'Pending', NOW(), ?)");
                         $maintStmt->bind_param("i", $GateId);
@@ -418,9 +413,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     if ($checkReq->num_rows == 0) {
                         // Inseriamo richiesta se usura è alta
-                        // STATUS = Pending (come richiesto)
+                        // STATUS = Pending
                         // PRIORITY = High
-                        // NON RESETTIAMO USURA QUI! (Il reset avverrà alla riparazione)
+                        // l'usura la resetta chi ripara
                         
                         $maintStmt = $conn->prepare("INSERT INTO MaintenanceRequests (Priority, Status, CreatedAt, IdGate) VALUES ('Low', 'Pending', NOW(), ?)");
                         $maintStmt->bind_param("i", $GateId);
@@ -432,14 +427,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
         
-        // Se l'accesso è GRANTED, aggiorna la posizione dell'utente (opzionale, ma consigliato)
-        // Se vuoi aggiornare la posizione e ricaricare la pagina, puoi farlo qui.
-        // Ma per una risposta AJAX, generalmente si aggiorna la UI tramite JS.
+        // Se l'accesso è GRANTED, aggiorna la posizione dell'utente
         if ($esito == "GRANTED") {
             // Invia al client la nuova posizione per aggiornare la UI
             $response['new_pos'] = $SectorId;
 
-            // Calcola le nuove stanze raggiungibili dalla nuova posizione (senza ricaricare la pagina)
+            // Calcola le nuove stanze raggiungibili dalla nuova posizione
             $nextAccessible = [];
             $nextQuery = $conn->prepare("SELECT g.IdGate, g.SecurityLevel, g.IdSectorA, g.IdSectorB, g.Wear, g.IsLocked 
                                          FROM Gates g 
@@ -482,17 +475,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['message'] = "ERRORE: La stanza $clicked_sector_id non è raggiungibile dalla tua posizione attuale ($LastPos) o non esiste un gate associato.";
     }
 
-    // === 5. RITORNA LA RISPOSTA JSON E TERMINA ===
+    // Mandiamo la risposta al frontend
     echo json_encode($response);
-    exit(); // Termina lo script PHP per non stampare il resto dell'HTML
+    exit(); 
 }
-
-
-// 3. REGISTRIAMO IL LOG NEL DB (esempio commentato)
-//$logStmt = $conn->prepare("INSERT INTO Accesses (Time, Result, IdGate, IdBadge) VALUES (?, ?, ?, ?)");
-//$logStmt->bind_param("ssii", $timestamp, $esito, $gateId, $badgeId);
-//$logStmt->execute();
-//$logStmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -505,7 +491,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         .scanner-box { background: #444; padding: 30px; border-radius: 10px; display: inline-block; width: 400px; }
         select, input { width: 90%; padding: 10px; margin: 10px 0; font-size: 1.1em; border-radius: 5px; border: none; }
         button { width: 95%; padding: 10px; font-size: 1.2em; cursor: pointer; background-color: #007bff; color: white; border: none; margin-top: 15px; border-radius: 5px; }
-        /* Stile Toast Notification per Messaggi Accesso */
+        /* Messaggi accesso */
         .result { 
             position: fixed;
             top: 20px;
@@ -520,14 +506,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: white;
             opacity: 0;
             visibility: hidden;
-            /* Assicura che visibility diventi hidden SOLO ALLA FINE dell'animazione (0.2s di ritardo) */
             transition: opacity 0.2s ease-in, top 0.2s ease-in, visibility 0s linear 0.2s;
         }
         .result.show {
             opacity: 1;
             visibility: visible;
             top: 40px;
-            /* Quando entra (show), la classe diventa visible istantaneamente */
             transition: opacity 0.2s ease-out, top 0.2s ease-out, visibility 0s linear 0s;
         }
         .success { background-color: #28a745; }
@@ -535,23 +519,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         a { color: #ccc; text-decoration: none; display: block; margin-top: 20px; }
 
 
-        /* 1. Contenitore principale: Fissato e centrato nel viewport */
+        /* fissato e centrato nel viewport */
         .fixed-centered-overlay {
-            /* Posizionamento fisso: rimane fermo durante lo scroll e lo zoom */
             position: fixed; 
-            
-            /* Sposta il punto d'inizio nell'angolo centrale (50% x 50%) */
             top: 50%;
             left: 50%;
-            
-            /* Sposta l'elemento indietro della metà della sua dimensione: centramento perfetto */
             transform: translate(-50%, -50%);
-            
-            /* Assicura che l'elemento sia sempre sopra il resto del contenuto */
             z-index: 9999; 
-            
-            /* Opzionale: per vedere l'area del contenitore */
-            /* border: 1px solid blue; */
         }
 
         .fixed-centered-overlay svg path:hover {
@@ -559,12 +533,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             fill-opacity: 0.3;
         }
 
-        /* 2. Elementi interni: Sovrapposti con precisione */
+        /* Per sovrapporre i pezzi del disegno */
         .overlay-element {
-            /* Rimuove gli spazi extra che il browser potrebbe inserire */
             display: block; 
-            
-            /* Permette a entrambi gli elementi di sovrapporsi con precisione */
             position: absolute;
             
             /* Centramento perfetto rispetto al contenitore .fixed-centered-overlay */
@@ -573,21 +544,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             transform: translate(-50%, -50%);
         }
 
-        /* 3. Stratificazione */
+        /* Chi sta sopra e chi sta sotto */
         .base-layer {
-            z-index: 10; /* Livello inferiore */
+            z-index: 10; 
             width: 1250px; /* Esempio: imposta la dimensione del tuo PNG */
             height: auto;
         }
 
         .top-layer {
-            z-index: 20; /* Livello superiore (apparirà sopra il PNG) */
+            z-index: 20; 
             width: 640px; /* Esempio: imposta la dimensione del tuo SVG */
             height: auto;
             top: -7px;
         }
 
-        /* Stili dinamici aggiunti da JS */
+        /* Roba JS */
         .room.accessible:hover {
             fill: #28a745; /* Verde per accesso consentito */
             fill-opacity: 0.5;
@@ -598,7 +569,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             fill-opacity: 0.5;
         }
 
-        /* NUOVA CLASSE: Stile della STANZA CORRENTE */
+        /* POSIZIONE ATTUALE */
         .room.current-position {
             fill: gold; /* Colore giallo fisso per la posizione attuale */
             fill-opacity: 0.4;
@@ -630,6 +601,66 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin-top: -10px;
         }
 
+        /* Effetti per le emergenze */
+        .emergency-effect {
+            pointer-events: none;
+        }
+
+        /* Fuoco (Incendio) */
+        .fire-effect {
+            fill: #ff4d00;
+            filter: blur(4px);
+            animation: flicker-fire 0.8s infinite alternate ease-in-out;
+            transform-box: fill-box;
+            transform-origin: center;
+            opacity: 0.85;
+        }
+        @keyframes flicker-fire {
+            0% { filter: blur(4px); opacity: 0.7; transform: scale(1); }
+            100% { filter: blur(10px); opacity: 1; transform: scale(1.3); }
+        }
+
+        /* Gas (Fuga di Gas) */
+        .gas-effect {
+            fill: #00ff00;
+            filter: blur(12px);
+            animation: pulse-gas 2.5s infinite ease-in-out;
+            transform-box: fill-box;
+            transform-origin: center;
+            opacity: 0.6;
+        }
+        @keyframes pulse-gas {
+            0% { opacity: 0.3; transform: scale(0.85); }
+            50% { opacity: 0.7; transform: scale(1.15); }
+            100% { opacity: 0.3; transform: scale(0.85); }
+        }
+
+        /* Icone Emergenza */
+        .emergency-icon {
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 65px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,1));
+            transform-box: fill-box;
+            transform-origin: center;
+        }
+        .fire-icon { fill: #ffcc00; animation: icon-shake 0.4s infinite linear; }
+        .gas-icon { fill: #adff2f; animation: icon-float 2s infinite ease-in-out; }
+
+        @keyframes icon-shake {
+            0% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+            100% { transform: rotate(-10deg); }
+        }
+        @keyframes icon-float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+
 
     </style>
 </head>
@@ -645,11 +676,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
     <?php endif; ?>
 
-    <!-- FontAwesome per l'icona (se non è già importato altrove, lo aggiungiamo qui) -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* Stile moderno per l'indicatore di posizione */
+        /* Il badge che indica la stanza in basso */
         #current-pos-badge {
             position: fixed;
             bottom: 10px;
@@ -762,6 +793,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             <path class="gate" id="-38" d="M1830.71 1595.5H1803.71V1562.5H1830.71V1595.5Z" fill="#FF0000" />
             <path class="gate" id="-39" d="M1725.46 1620.5H1691.46V1596.5H1725.46V1620.5Z" fill="#FF0000" />
             <path class="gate" id="-40" d="M1665.46 1620.5H1631.46V1596.5H1665.46V1620.5Z" fill="#FF0404" />
+            
+            <!-- Qui disegniamo gli effetti delle emergenze (fuoco/gas) -->
+            <g id="emergency-overlay" class="emergency-effect"></g>
         </svg>
 
 
@@ -771,7 +805,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     </div>
 
-    <!--    SCRIPT MAPPA        -->
+    <!-- Logica della mappa -->
 
     <script>
     const allGatesData = <?php echo json_encode($allGatesData); ?>;
@@ -784,7 +818,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             gatePopup.className = 'gate-popup';
             document.body.appendChild(gatePopup);
             
-            // Nasconde il popup al click fuori
+            // Se clicchi fuori dal fumetto, lo chiudiamo
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.gate') && !e.target.closest('.gate-popup')) {
                     gatePopup.style.display = 'none';
@@ -808,18 +842,86 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         gatePopup.style.display = 'block';
     }
 
-    // 1. Variabile per i settori accessibili
+    // Dove può andare l'utente adesso?
     let accessibleSectors = <?php echo json_encode($accessibleSectors); ?>;
     
-    // Funzione per inizializzare gli eventi (chiamata al caricamento e dopo l'accesso GRANTED)
+    // Alcune stanze hanno forme strane, quindi fissiamo noi dove deve apparire l'effetto
+    const customCenters = {
+        '21': { x: 1385.0, y: 845.1 },
+    };
+
+    function roomCenter(roomId) {
+        const strId = String(roomId);
+        
+        // Controlliamo se abbiamo una coordinata a mano
+        if (customCenters[strId]) {
+            return customCenters[strId];
+        }
+
+        // Sennò lo calcoliamo in automatico
+        const room = document.getElementById(strId);
+        if (!room || typeof room.getBBox !== 'function') return null;
+        const b = room.getBBox();
+        return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    }
+
+    // Vediamo se ci sono allarmi che bloccano le porte
+    let currentEmergencies = <?php 
+        $emgQuery = $conn->query("SELECT Type, IdSector FROM EmergencyEvents WHERE NOW() BETWEEN StartTime AND EndTime");
+        $emgs = [];
+        while($e = $emgQuery->fetch_assoc()) $emgs[] = $e;
+        echo json_encode($emgs);
+    ?>;
+
+    function renderEmergencies(emergencies) {
+        //console.log("Rendering Emergencies:", emergencies); 
+        currentEmergencies = emergencies; 
+        const overlay = document.getElementById('emergency-overlay');
+        if (!overlay) {
+            console.error("Overlay element not found!");
+            return;
+        }
+        overlay.innerHTML = ''; 
+
+        emergencies.forEach(emp => {
+            const center = roomCenter(emp.IdSector);
+            if (!center) {
+                console.warn("Could not find center for sector:", emp.IdSector);
+                return;
+            }
+
+            // Disegniamo il cerchio sfumato
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', center.x);
+            circle.setAttribute('cy', center.y);
+            circle.setAttribute('r', '85');
+            circle.setAttribute('class', emp.Type === 'Incendio' ? 'fire-effect' : 'gas-effect');
+            overlay.appendChild(circle);
+
+            // E ci mettiamo sopra l'iconcina (fuoco o teschio)
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            icon.setAttribute('x', center.x);
+            icon.setAttribute('y', center.y);
+            icon.setAttribute('class', emp.Type === 'Incendio' ? 'emergency-icon fire-icon' : 'emergency-icon gas-icon');
+            icon.textContent = emp.Type === 'Incendio' ? '\uf06d' : '\uf72e'; 
+            overlay.appendChild(icon);
+        });
+    }
+
+    // Facciamo apparire subito gli allarmi se ce ne sono
+    if (typeof renderEmergencies === 'function') {
+        renderEmergencies(currentEmergencies);
+    }
+    
+    // Prepariamo la mappa e i tasti (lo facciamo all'inizio o dopo ogni spostamento)
     function initializeMapEvents(currentPos) {
         
-        // 1. Aggiornamento vista dei Gate in base alla posizione (per utente normale)
+        // Vediamo di che colore devono essere le porte
         document.querySelectorAll('.gate').forEach(gate => {
             const gateId = Math.abs(parseInt(gate.id));
             const gateInfo = allGatesData[gateId];
             
-            gate.style.pointerEvents = 'none'; // Nessun click per l'utente sui gate
+            gate.style.pointerEvents = 'none'; // L'utente non può cliccare direttamente sulle porte
 
             if (gateInfo) {
                 const isBordering = (gateInfo.IdSectorA == currentPos || gateInfo.IdSectorB == currentPos);
@@ -827,16 +929,29 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if (isBordering) {
                     gate.style.opacity = '1';
                     
-                    let destSector = (gateInfo.IdSectorA == currentPos) ? gateInfo.IdSectorB : gateInfo.IdSectorA;
-                    let isAccessible = (userBadgeLevel >= gateInfo.SecurityLevel) && (gateInfo.Wear < 100);
+                    let destSector = String((String(gateInfo.IdSectorA) === String(currentPos)) ? gateInfo.IdSectorB : gateInfo.IdSectorA);
                     
-                    // regola utente pending: non può uscire dalla hall
-                    if (userBadgeLevel === 1 && currentPos == 1 && destSector != 1) {
+                    // Se c'è un'emergenza le porte cambiano comportamento
+                    const isFire = currentEmergencies.some(e => e.Type === 'Incendio');
+                    const gasRooms = currentEmergencies.filter(e => e.Type === 'Fuga di gas').map(e => String(e.IdSector));
+                    
+                    //console.log("Gate Check:", gateId, "isFire:", isFire, "gasRooms:", gasRooms, "dest:", destSector);
+
+                    let isAccessible = (parseInt(userBadgeLevel) >= parseInt(gateInfo.SecurityLevel)) && (parseInt(gateInfo.Wear) < 100);
+                    
+                    if (isFire) {
+                        isAccessible = (parseInt(gateInfo.Wear) < 100); 
+                    } else if (gasRooms.includes(destSector)) {
+                        isAccessible = false; 
+                    } else if (gasRooms.includes(String(currentPos))) {
+                        isAccessible = (parseInt(gateInfo.Wear) < 100); 
+                    }
+
+                    if (parseInt(userBadgeLevel) === 1 && String(currentPos) === "1" && destSector !== "1" && !isFire) {
                         isAccessible = false;
                     }
                     
-                    // Regola porta bloccata
-                    if (gateInfo.IsLocked == 1) {
+                    if (parseInt(gateInfo.IsLocked) === 1 && !isFire) {
                         isAccessible = false;
                     }
 
@@ -852,7 +967,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         });
 
-        // Prima di tutto, marca la posizione corrente
+        // Segniamo dove si trova l'utente adesso
         document.querySelectorAll('.room').forEach(room => {
             room.classList.remove('current-position'); // Rimuovi la classe da tutti
             if (room.id == currentPos) {
@@ -864,14 +979,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         document.querySelectorAll('.room').forEach(room => {
             const roomId = room.id;
 
-            // Rimuovi vecchi listener per evitare duplicati (necessario quando si re-inizializza)
+            // Puliamo i vecchi tasti per non fare confusione
             room.removeEventListener('mouseover', handleMouseOver);
             room.removeEventListener('mouseout', handleMouseOut);
             room.removeEventListener('click', handleClick); 
             
-            // Aggiungi i nuovi listener
+            // Rimettiamo i tasti sulle stanze
 
-            // MOUSEOVER (usiamo una funzione esterna per poterla rimuovere)
+            // Quando passi sopra con il mouse
             room.addEventListener('mouseover', handleMouseOver);
 
             // MOUSEOUT
@@ -883,18 +998,18 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
 
-    // Funzione MOUSEOVER (Logica Hover)
+    // Cosa succede quando scorri sopra una stanza
     function handleMouseOver() {
         // Recupera la posizione corrente dal DOM (la fonte aggiornata)
         const currentPos = document.getElementById('current-pos-text').dataset.currentPos;
         const roomId = this.id; // 'this' è l'elemento room (path) cliccato
 
-        // NON TOCCARE LA STANZA CORRENTE!
+        // Se è dove si trova già l'utente non facciamo nulla
         if (roomId == currentPos) {
             return; 
         }
         
-        // CONTROLLO DI ACCESSO (usa l'array 'accessibleSectors' aggiornato)
+        // Vediamo se può entrare o no
         if (accessibleSectors.includes(roomId)) {
             this.classList.add('accessible');
             this.classList.remove('inaccessible');
@@ -905,14 +1020,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
 
-    // Funzione MOUSEOUT (Ripulisce l'Hover)
+    // Quando togli il mouse dalla stanza
     function handleMouseOut() {
-        // Rimuove le classi dinamiche, ripristinando lo stato base (trasparente o current-position)
+        // Torniamo al colore normale
         this.classList.remove('accessible', 'inaccessible');
     }
     
     
-    // Funzione CLICK (Logica AJAX)
+    // Cosa succede quando clicchi per spostarti
     function handleClick() {
         const clickedId = this.id;
         const currentPos = document.getElementById('current-pos-text').dataset.currentPos;
@@ -922,7 +1037,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             return;
         }
 
-        // Effettua la chiamata AJAX
+        // Chiediamo al server se possiamo passare
         fetch('gates.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -936,41 +1051,41 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         })
         .then(data => {
             
-            // 1. Mostra il messaggio di stato come TOAST
+            // Facciamo apparire il fumetto con il risultato
             const resultElement = document.getElementById('access-message'); 
             resultElement.textContent = data.message;
             resultElement.className = data.status === 'success' ? 'result success show' : 'result error show';
             
-            // Nascondi automaticamente dopo 4 secondi
+            // Dopo un po' lo facciamo sparire
             if(window.accessMessageTimeout) clearTimeout(window.accessMessageTimeout);
             window.accessMessageTimeout = setTimeout(() => {
                 resultElement.classList.remove('show');
             }, 4000);
 
-            // 2. GESTIONE ACCESSO CONSENTITO (Aggiornamento Mappa Senza Ricarica)
+            // Se il server dice OK, ci spostiamo sulla mappa
             if (data.status === 'success' && data.new_pos) {
                 
-                // a) AGGIORNA LO STATO GLOBALE NELL'HTML
+                // Aggiorniamo il testo con la nuova stanza
                 const posElement = document.getElementById('current-pos-text');
                 posElement.innerHTML = `Ti trovi nella Stanza: <strong>${data.new_pos}</strong>`;
-                posElement.dataset.currentPos = data.new_pos; // *** ESSENZIALE: Aggiorna il data attribute! ***
+                posElement.dataset.currentPos = data.new_pos; // Importante per non far buggare i click dopo
                 
-                // b) Rimuovi il messaggio di "Hall" se ci si sposta dalla Hall (Stanza 1)
+                // Se usciamo dall'ingresso puliamo i messaggi vecchi
                 if (data.new_pos != '1') {
                     // Puoi rifare la logica PHP qui per il messaggio hall se necessario.
                 }
 
-                // c) Aggiorna le posizioni possibili lato client (senza ricaricare tutta la pagina)
+                // Aggiorniamo la lista delle stanze vicine
                 if (Array.isArray(data.accessible_sectors)) {
                     accessibleSectors = data.accessible_sectors.map(String);
                 } else {
                     accessibleSectors = [];
                 }
 
-                // d) Riesegui il wiring degli eventi con la nuova posizione corrente
+                // Ricostruiamo i tasti della mappa
                 initializeMapEvents(String(data.new_pos));
                 
-                // e) Avvisa il parent (dashboard) per aggiornare la UI dinamicamente
+                // Diciamo alla pagina principale che ci siamo mossi
                 if (window.parent) {
                     window.parent.postMessage({ type: 'roomMoved', newPos: data.new_pos }, '*');
                 }
@@ -983,19 +1098,19 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         });
     }
 
-    // Avvia gli eventi al caricamento della pagina solo per gli utenti NON admin monitor
+    // Se non siamo un admin che guarda i monitor, attiviamo la mappa
     const isMonitorMode = <?php echo $isMonitorMode ? 'true' : 'false'; ?>;
     if (!isMonitorMode) {
         initializeMapEvents(<?php echo json_encode($LastPos); ?>);
         
-        // --- POLLING PER AGGIORNAMENTI IN TEMPO REALE PER UTENTI NORMALI ---
+        // Ogni 3 secondi chiediamo al server se è cambiato qualcosa
         setInterval(function() {
-            // Chiedi al server lo stato di tutti i gate e delle emergenze
+            // Vediamo se ci sono nuove emergenze o porte rotte
             fetch('gates_status_api.php')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // Aggiorna i dati globali
+                    // Salviamo i nuovi dati
                     Object.keys(data.gates).forEach(id => {
                         if (allGatesData[id]) {
                             allGatesData[id].Wear = data.gates[id].Wear;
@@ -1003,12 +1118,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                         }
                     });
                     
-                    // Ricalcoliamo accessibilità base (il server ci restituisce i nuovi accessible_sectors)
+                    // Vediamo dove può andare l'utente ora
                     if (Array.isArray(data.accessible_sectors)) {
                         accessibleSectors = data.accessible_sectors.map(String);
                     }
                     
-                    // Ridisegnamo la ui con i nuovi dati
+                    // Disegniamo i nuovi allarmi
+                    if (data.emergencies) {
+                        renderEmergencies(data.emergencies);
+                    }
+                    
+                    // Aggiorniamo i colori della mappa
                     const currentPos = document.getElementById('current-pos-text').dataset.currentPos;
                     initializeMapEvents(currentPos);
                 }
@@ -1017,12 +1137,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         }, 3000); // 3 secondi
     }
 
-    // === REALTIME ADMIN OVERLAY (BadgeLevel 4, Modalità Monitor) ===
+    // Se siamo nel centro di controllo (Admin)
     if (isMonitorMode) {
-        // Disabilita i click per le stanze dell'admin
+        // L'admin non cammina sulla mappa, guarda solo
         document.querySelectorAll('.room').forEach(r => r.style.pointerEvents = 'none');
         
-        // Abilita i click per i Gate
+        // Ma l'admin può cliccare sulle porte per gestirle
         document.querySelectorAll('.gate').forEach(gate => {
             gate.style.pointerEvents = 'auto';
             gate.style.cursor = 'pointer';
@@ -1030,9 +1150,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             const gateId = Math.abs(parseInt(gate.id));
             const info = allGatesData[gateId];
             
-            // Colora porta a seconda dello stato di blocco
+            // Cambiamo colore alla porta così l'admin capisce subito
             if (info) {
-                if (info.Wear >= 33) {
+                const isFireAdmin = currentEmergencies.some(e => e.Type === 'Incendio');
+                if (isFireAdmin) {
+                    gate.style.fill = (info.Wear >= 33) ? '#ffc107' : '#28a745';
+                } else if (info.Wear >= 33) {
                     gate.style.fill = '#ffc107'; // Giallo se richiede riparazione
                 } else if (info.IsLocked == 1) {
                     gate.style.fill = '#dc3545'; // Rosso se bloccata
@@ -1049,7 +1172,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             });
         });
 
-        // Funzione JS per bloccare/sbloccare
+        // Cosa succede quando l'admin preme per bloccare
         window.toggleGateLock = function(gateId, currentLocked) {
             const newLockedState = currentLocked == 1 ? 0 : 1;
             fetch('toggle_gate_lock.php', {
@@ -1060,10 +1183,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    allGatesData[gateId].IsLocked = newLockedState; // update local data
-                    gatePopup.style.display = 'none'; // hide popup to force redraw next click
+                    allGatesData[gateId].IsLocked = newLockedState; // salviamo il nuovo stato
+                    gatePopup.style.display = 'none'; // chiudiamo il fumetto
                     
-                    // Aggiorna visivamente il colore del path
+                    // Cambiamo subito il colore della porta sulla mappa
                     const gateElement = document.getElementById("-" + gateId);
                     if (gateElement) {
                         if (allGatesData[gateId].Wear >= 33) {
@@ -1091,9 +1214,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         overlayGroup.setAttribute('id', 'admin-live-overlay');
         svg.appendChild(overlayGroup);
 
-        // id_badge -> { id_sector, label, color, el }
+        // Mappa delle persone che vediamo (id_badge -> { id_sector, label, color, el })
         const people = new Map();
-        // id_sector -> [id_badge, id_badge, ...] (ordine usato per lo stacking verticale)
+        // Chi c'è in ogni stanza (id_sector -> [id_badge, id_badge, ...])
         const sectorStacks = new Map();
         let lastEventId = 0;
 
@@ -1103,28 +1226,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         ];
         function colorFor(badgeId) {
             return palette[Math.abs(parseInt(badgeId, 10)) % palette.length];
-        }
-
-        // Dizionario per le coordinate personalizzate del centro (es. per corridoi a L o forme non convesse)
-        // Se si nota un'icona fuori posto, basta aggiungere l'ID della stanza qui con le coordinate desiderate.
-        // BBox Center spesso finisce fuori dalla stanza per forme a U o L (es. corridoi lunghi).
-        const customCenters = {
-            '21': { x: 1385.0, y: 845.1 },
-        };
-
-        function roomCenter(roomId) {
-            const strId = String(roomId);
-            
-            // 1. Controlla se abbiamo forzato un centro manuale
-            if (customCenters[strId]) {
-                return customCenters[strId];
-            }
-
-            // 2. Fallback sul Bounding Box (che fallisce per i poligoni non convessi/a U/a L)
-            const room = document.getElementById(strId);
-            if (!room || typeof room.getBBox !== 'function') return null;
-            const b = room.getBBox();
-            return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
         }
 
         function upsertMarker(p) {
@@ -1164,7 +1265,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!g) {
                 g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
-                // Piccolo "pin" tondo colorato (sempre visibile)
+                // Il pallino che rappresenta la persona (sempre visibile)
                 const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 circle.setAttribute('r', '14');
                 circle.setAttribute('cx', '0');
@@ -1174,7 +1275,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 circle.setAttribute('stroke', '#111827');
                 circle.setAttribute('stroke-width', '2.5');
 
-                // Etichetta tipo "pill" (visibile SOLO in hover)
+                // Il nome che appare quando ci passi sopra (visibile SOLO in hover)
                 const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 bg.setAttribute('x', '20');
                 bg.setAttribute('y', '-40');
@@ -1198,7 +1299,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 text.setAttribute('opacity', '0');
                 text.textContent = label;
 
-                // Hover: mostra/nasconde label
+                // Quando passi il mouse sul pallino
                 g.addEventListener('mouseenter', () => {
                     bg.setAttribute('opacity', '1');
                     text.setAttribute('opacity', '1');
@@ -1213,7 +1314,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 g.appendChild(text);
                 overlayGroup.appendChild(g);
 
-                // Imposta larghezza dinamica dell'etichetta in base al testo
+                // Allunghiamo la targhetta se il nome è lungo
                 try {
                     const textLen = text.getComputedTextLength();
                     const paddingX = 28;
@@ -1223,7 +1324,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     bg.setAttribute('width', '360');
                 }
             } else {
-                // aggiorna label se cambia (es: snapshot vuota -> stream completa)
+                // Se cambiano i dati, aggiorniamo il nome
                 const text = g.querySelector('text');
                 const bg = g.querySelector('rect');
                 if (text && text.textContent !== label) {
@@ -1240,10 +1341,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            // Salvo o aggiorno i dati nel dizionario globale
+            // Teniamoci traccia di tutti
             people.set(key, { ...p, label, color, el: g });
 
-            // Funzione helper per ricalcolare le posizioni verticali di TUTTI gli utenti in un dato settore
+            // Se ci sono più persone in una stanza, le mettiamo in fila
             function redrawSectorStack(sectorId) {
                 const sKey = String(sectorId);
                 const sStack = sectorStacks.get(sKey);
@@ -1260,7 +1361,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if (personData && personData.el) {
                         const offsetY = (index - (n - 1) / 2) * spacing;
                         personData.el.setAttribute('transform', `translate(${sCenter.x}, ${sCenter.y + offsetY})`);
-                        // Portiamo l'elemento in primo piano per evitare sovrapposizioni strane
+                        // Mettiamo il pallino sopra agli altri
                         const parent = personData.el.parentNode;
                         if (parent) {
                             parent.appendChild(personData.el);
@@ -1269,10 +1370,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 });
             }
 
-            // Ricalcola il settore corrente
+            // Aggiorniamo la stanza attuale
             redrawSectorStack(stackKey);
             
-            // Se l'utente si è spostato da un altro settore, ricalcola anche il settore precedente
+            // E aggiorniamo anche la stanza da dove è venuto
             if (needsPrevUpdate) {
                 redrawSectorStack(prevSector);
             }
@@ -1285,7 +1386,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             });
         }
 
-        // 1) Snapshot iniziale (tutti)
+        // Vediamo dove sono tutti all'inizio
         fetch('admin_positions_snapshot.php')
             .then(r => r.ok ? r.json() : Promise.reject(r))
             .then(data => applySnapshot(data.positions))
@@ -1293,7 +1394,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // niente: se fallisce, continueremo con lo stream
             })
             .finally(() => {
-                // 2) Stream realtime (EventSource) con last_id per non perdere eventi
+                // E poi seguiamo gli spostamenti in diretta
                 const es = new EventSource(`admin_positions_stream.php?last_id=${encodeURIComponent(lastEventId)}`);
 
                 es.addEventListener('move', (ev) => {

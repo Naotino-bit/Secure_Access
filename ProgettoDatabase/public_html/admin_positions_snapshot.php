@@ -13,7 +13,7 @@ if (!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user'];
 
-// Verifica autorizzazione: Admin (Livello 4) o Sorveglianza (Livello 3)
+// Controlliamo se ha il permesso di spiare la gente
 $authQuery = "
     SELECT B.BadgeLevel, S.Role
     FROM Users U 
@@ -38,7 +38,7 @@ if (!$isAuthorized) {
     exit();
 }
 
-// Snapshot: ultima posizione (GRANTED) per ogni badge + nome
+// Foto istantanea di dove si trova la gente adesso
 $sql = "
     SELECT
         A.IdAccess,

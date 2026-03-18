@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-// Get User ID from Email
+// Vediamo chi è l'utente partendo dall'email
 $email = $_SESSION['user'];
 $resUser = $conn->query("
     SELECT IdUser, Role 
@@ -21,9 +21,8 @@ if ($resUser->num_rows == 0) {
 $userData = $resUser->fetch_assoc();
 $userId = $userData['IdUser'];
 
-// Fetch Tasks Assigned to this Employee (Pending or In Progress)
-// We join with MaintenanceTasks and RestockTasks to get details.
-// Note: A task is either Maintenance OR Restock.
+// Vediamo cosa deve fare oggi questo dipendente
+// Recuperiamo tutti i dettagli dei lavori da fare
     $query = "
     SELECT T.IdTask, T.Type, T.StartTime, T.EndTime, T.Status,
            G.IdGate, G.Wear, S.Description as SectorDesc,
@@ -52,6 +51,7 @@ $now = new DateTime();
 <head>
     <meta charset="UTF-8">
     <title>Le Mie Task</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%234facfe' d='M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C25.5 92 16 110.1 16 130.1c0 231 161.4 336.8 226.7 372.4a47.79 47.79 0 0 0 46.5 0C354.6 466.9 512 361.1 512 130.1c0-20-9.5-38.1-26.6-46.4z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -133,7 +133,7 @@ $now = new DateTime();
                 $end = new DateTime($task['EndTime']);
                 $isTime = ($now >= $start && $now <= $end);
 
-                // Determine visuals
+                // Scegliamo il colore giusto in base al lavoro
                 $class = ($task['Type'] == 'Maintenance') ? 'task-maint' : 'task-restock';
                 $title = ($task['Type'] == 'Maintenance') ? "Manutenzione Gate {$task['IdGate']}" : "Rifornimento Magazzino";
             ?>
@@ -183,16 +183,16 @@ $now = new DateTime();
 
     <!-- Tabella inventario -->
     <?php 
-    // 3. Fetch Inventory
+    // Controlliamo il magazzino
     $queryInv = "SELECT * FROM Inventory";
     $resInv = $conn->query($queryInv);
     $inventory = [];
     while($row = $resInv->fetch_assoc()) $inventory[] = $row;
     
-    // Show inventory if user is Magazziniere or has Restock tasks
+    // Facciamo vedere il magazzino solo a chi serve
     $isMagazziniere = (strpos(strtolower($userData['Role']), 'magazziniere') !== false);
     
-    // Check if any of the fetched tasks is Restock
+    // Controlliamo se ci sono box da caricare
     $hasRestockTask = false;
     foreach($tasks as $t) {
         if ($t['Type'] == 'Restock') {

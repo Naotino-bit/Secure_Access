@@ -1,4 +1,4 @@
 <?php
-// Just doing a trivial syntax test
+// Un semplice controllo per vedere se il codice gira
 echo "OK parsing\n";
 ?>

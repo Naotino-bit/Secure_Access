@@ -14,7 +14,7 @@ if(isset($_GET['email']) && isset($_GET['token'])) {
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0){
-        $stmt->close(); //chiudo se troviamo l'utente
+        $stmt->close(); // L'utente esiste, ora attiviamolo sul serio
         $UpdateQuery = "UPDATE Users SET is_verified = 1, token = NULL WHERE Email = ?";
         $update = $conn->prepare($UpdateQuery);
         $update->bind_param("s", $email);

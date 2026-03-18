@@ -2,7 +2,7 @@
     require "db_connection.php";
     session_start();
 
-    // Eseguiamo il controllo automatico per far uscire i dipendenti fuori orario
+    // Se qualcuno è rimasto dentro oltre l'orario lo buttiamo fuori
     require_once "includes/auto_teleport.php";
 
     if (!isset($_SESSION['user'])) {
@@ -12,11 +12,11 @@
 
     $email = $_SESSION['user']; 
 
-    // Admin Mode Toggle (Dobbiamo controllare la posizione reale prima di permettere il cambio)
+    // Qui gestiamo se l'admin vuole vedere i monitor o la mappa normale
 
     $realLastPos = 1;
     if (isset($_SESSION['user'])) {
-        // Recupera ID Badge per query accessi
+        // Ci serve il badge per sapere dove sta
         $badgeQuery = $conn->prepare("SELECT U.IdBadge, B.BadgeLevel, S.Role FROM Users U LEFT JOIN Badges B ON U.IdBadge = B.IdBadge LEFT JOIN Employees E ON U.IdUser = E.IdEmployee LEFT JOIN Shifts S ON S.IdRole = E.IdRole WHERE U.Email = ?");
         $badgeQuery->bind_param("s", $email);
         $badgeQuery->execute();
@@ -26,7 +26,7 @@
             $bLevel = $bRow['BadgeLevel'];
             $role = $bRow['Role'];
             
-            // Trova ultima posizione interattiva reale
+            // Cerchiamo l'ultima posizione registrata
             $posQuery = $conn->prepare("SELECT IdSectorTo FROM Accesses WHERE IdBadge = ? AND Result IN ('GRANTED', 'AUTO_EXIT') ORDER BY IdAccess DESC LIMIT 1");
             $posQuery->bind_param("i", $idBadge);
             $posQuery->execute();
@@ -36,9 +36,9 @@
             }
             $posQuery->close();
             
-            // Inizializza admin_mode in sessione se manca
+            // Se ha appena fatto il login, partiamo dalla mappa normale
             if ($bLevel == 4) {
-                $_SESSION['admin_mode'] = 'interactive'; // Admin maintains interactive map only
+                $_SESSION['admin_mode'] = 'interactive'; // Gli admin stanno sempre in interattivo per ora
             } elseif ($role === 'Sorveglianza' && !isset($_SESSION['admin_mode'])) {
                 $_SESSION['admin_mode'] = ($realLastPos == 25) ? 'monitor' : 'interactive';
             }
@@ -49,15 +49,15 @@
     if (isset($_GET['toggle_mode'])) {
         $currentAdminMode = isset($_SESSION['admin_mode']) ? $_SESSION['admin_mode'] : 'monitor';
         
-        // Se stiamo passando da interactive a monitor, dobbiamo essere nella stanza 25
+        // Solo se sei fisicamente nel centro di controllo puoi vedere i monitor
         if ($currentAdminMode === 'interactive') {
             if ($realLastPos == 25) {
                 $_SESSION['admin_mode'] = 'monitor';
             } else {
-                // Tentativo sventato, non fare niente o mostra errore
+                // Se prova a fare il furbo non succede nulla
             }
         } 
-        // Se stiamo passando da monitor a interactive, è sempre permesso
+        // Ma per tornare alla mappa normale non servono controlli
         else {
             $_SESSION['admin_mode'] = 'interactive';
         }
@@ -66,7 +66,7 @@
         exit();
     }
 
-    // Recupero dati utente e LIVELLO BADGE
+    // Carichiamo tutte le info dell'utente e del suo badge
 
     $query = "
         SELECT U.IdUser, U.IdBadge, U.Name, U.Surname, E.IdRole, B.BadgeLevel, B.ExpirationDate, B.DateOfIssue, S.Role
@@ -101,6 +101,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Cruscotto Operativo | GATES</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%234facfe' d='M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C25.5 92 16 110.1 16 130.1c0 231 161.4 336.8 226.7 372.4a47.79 47.79 0 0 0 46.5 0C354.6 466.9 512 361.1 512 130.1c0-20-9.5-38.1-26.6-46.4z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -112,7 +113,7 @@
             --yellow: #e1b12c;
             --green: #00a859;
             --pink: #e64b7c;
-            --unime-blue: #0072b8;
+            --blue: #0072b8;
             --text-dark: #2c3e50;
         }
 
@@ -125,9 +126,9 @@
             overflow-x: hidden;
         }
 
-        /* Header Principale */
+        /* La barra blu in alto */
         .app-header {
-            background-color: var(--unime-blue);
+            background-color: var(--blue);
             color: white;
             padding: 15px 40px;
             display: flex;
@@ -153,7 +154,7 @@
         .header-right h2 { margin: 0; font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; }
         .header-right span { font-size: 0.9rem; font-weight: 300; opacity: 0.9; }
 
-        /* Struttura Dashboard */
+        /* Struttura principale della dashboard */
         .dashboard-container {
             max-width: 1400px;
             margin: 30px auto;
@@ -164,7 +165,7 @@
             align-items: start;
         }
 
-        /* Stile Widget Base (Glassmorphism) */
+        /* Effetto vetro per i pannelli */
         .widget {
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
@@ -177,7 +178,7 @@
         }
         .widget:last-child { margin-bottom: 0; }
 
-        /* Header Widget */
+        /* Stile per i titoli dei pannelli */
         .widget-header {
             padding: 18px 20px;
             color: white;
@@ -196,9 +197,9 @@
         .cyan-header { background-color: var(--cyan); }
         .green-header { background-color: var(--green); }
         .pink-header { background-color: var(--pink); }
-        .blue-header { background-color: var(--unime-blue); }
+        .blue-header { background-color: var(--blue); }
 
-        /* Security Badge Design - Initials Style */
+        /* Il tesserino di riconoscimento */
         .security-badge {
             background: #fff;
             border-radius: 12px;
@@ -221,11 +222,11 @@
             text-transform: uppercase;
         }
 
-        /* Livelli Sicurezza Premium */
-        .level-1-header { background: linear-gradient(135deg, #718093 0%, #2f3640 100%); } /* Steel */
-        .level-2-header { background: linear-gradient(135deg, #0097e6 0%, #00a8ff 100%); } /* Ocean */
-        .level-3-header { background: linear-gradient(135deg, #e1b12c 0%, #fbc531 100%); } /* Gold */
-        .level-4-header { background: linear-gradient(135deg, #8c7ae6 0%, #9c88ff 100%); } /* Royal */
+        /* Cambiamo colore a seconda del livello di accesso */
+        .level-1-header { background: linear-gradient(135deg, #718093 0%, #2f3640 100%); } /* Accesso base */
+        .level-2-header { background: linear-gradient(135deg, #0097e6 0%, #00a8ff 100%); } /* Accesso intermedio */
+        .level-3-header { background: linear-gradient(135deg, #e1b12c 0%, #fbc531 100%); } /* Accesso avanzato */
+        .level-4-header { background: linear-gradient(135deg, #8c7ae6 0%, #9c88ff 100%); } /* Accesso totale */
 
         .badge-content {
             padding: 25px 20px;
@@ -286,7 +287,7 @@
             gap: 12px;
             border-bottom: 1px dashed #f1f3f5;
         }
-        .badge-info-list li i { color: var(--unime-blue); width: 16px; text-align: center; }
+        .badge-info-list li i { color: var(--blue); width: 16px; text-align: center; }
         /*.badge-info-list li strong { color: #333; margin-left: auto; }*/
 
         .btn-logout-sidebar {
@@ -297,7 +298,7 @@
         }
         .btn-logout-sidebar:hover { background: #feebeb; border-color: #f5c6cb; }
 
-        /* Contenuto Main App Grid */
+        /* Come sono messi i bottoni delle app */
         .main-content {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -338,15 +339,15 @@
         .app-icon i { margin-bottom: 15px; font-size: 3rem; transition: color 0.3s;}
         .app-icon span { font-size: 0.9rem; line-height: 1.2; font-weight: 600;}
 
-        /* Colori Isole/App */
+        /* Colori per le icone delle app */
         .text-cyan { color: var(--cyan); }
-        .text-blue { color: var(--unime-blue); }
+        .text-blue { color: var(--blue); }
         .text-yellow { color: #f39c12; }
         .text-red { color: #e74c3c; }
         .text-green { color: var(--green); }
         .text-purple { color: #9b59b6; }
 
-        /* Stato e Alert Integrati */
+        /* I messaggi che appaiono in alto (successo/errore) */
         .global-alerts { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px;}
         .msg-box { padding: 15px 20px; border-radius: 10px; font-weight: 600; display: flex; align-items: center; gap: 10px; animation: slideDown 0.4s ease-out; }
         .msg-box.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -362,7 +363,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Form Chimico */
+        /* Sezione speciale per chi lavora in laboratorio */
         .chem-form-wrapper { padding: 25px; text-align: center; }
         .chem-form { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 15px;}
         .chem-form input { padding: 12px; border: 1px solid #ced4da; border-radius: 8px; width: 90px; text-align: center; outline: none; font-size: 1.1rem;}
@@ -370,14 +371,14 @@
         .btn-app-action { background: var(--pink); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size:1rem;}
         .btn-app-action:hover { background: #d83a6b; box-shadow: 0 4px 15px rgba(230,75,124,0.4); }
 
-        /* Mappa Container */
+        /* Il riquadro che contiene la piantina */
         .map-container-inner { padding: 0; margin-bottom: -5px;}
         .map-container-inner iframe { width: 100%; height: 800px; display: block; border: none; }
         
-        /* Contenitore Pannello Admin che rimpiazza tabelle */
+        /* Spazio per i bottoni riservati ai capi */
         .admin-widget-content { padding: 25px; } 
 
-        /* Pulsanti Glass per admin_panel */
+        /* Stili per i vari tasti colorati */
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.3s ease; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
         .btn-purple { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: white; box-shadow: 0 4px 15px rgba(161, 140, 209, 0.4); }
@@ -410,16 +411,16 @@
 
 <div class="dashboard-container">
     
-    <!-- Area Sinistra: Security Badge (Take 3) -->
+    <!-- Il tesserino sulla sinistra -->
     <aside class="sidebar">
         <div class="security-badge">
-            <!-- Header con Livello -->
+            <!-- Livello di sicurezza scritto in alto -->
             <div class="badge-header level-<?php echo $badgeLevel; ?>-header">
                 SECURITY LEVEL <?php echo $badgeLevel; ?>
             </div>
             
             <div class="badge-content">
-                <!-- Foto Profilo con Iniziali -->
+                <!-- L'immagine o le iniziali dell'utente -->
                 <div class="profile-initials">
                     <?php 
                         $initials = substr($currentUser['Name'], 0, 1) . substr($currentUser['Surname'], 0, 1);
@@ -443,10 +444,10 @@
         </div>
     </aside>
 
-    <!-- Area Destra: Griglia Applicazioni -->
+    <!-- Le varie applicazioni e strumenti sulla destra -->
     <main class="main-content">
         
-        <!-- Notifiche Globali -->
+        <!-- Messaggi che appaiono dopo un'azione -->
         <?php if (isset($_GET['success']) || isset($_GET['error'])): ?>
         <div class="global-alerts">
             <?php if (isset($_GET['success']) && $_GET['success'] !== ''): ?>
@@ -461,7 +462,7 @@
         </div>
         <?php endif; ?>
 
-        <!-- Isola 0: Utenti Rifiutati / Licenziati -->
+        <!-- Cosa vede chi è stato licenziato o non accettato -->
         <?php if ($badgeLevel == 0): ?>
         <div class="widget wide-widget">
             <div class="widget-header red-header" style="background-color: var(--pink);">
@@ -488,18 +489,19 @@
         </div>
         <?php endif; ?>
 
-        <!-- Isola 1: Operazioni Struttura (Admin & Employees) -->
-        <?php if ($badgeLevel == 4 || ($badgeLevel >= 2 && $currentUser['Role'] !== 'Chimico' && $currentUser['Role'] !== 'Sorveglianza')): ?>
-        <div class="widget">
-            <div class="widget-header cyan-header">
-                <i class="fas fa-briefcase fa-2x"></i>
+        <!-- Strumenti di Controllo e Gestione (Unified Control Panel) -->
+        <?php if ($badgeLevel == 4 || $currentUser['Role'] === 'Sorveglianza' || ($badgeLevel >= 2 && $currentUser['Role'] !== 'Chimico' && $currentUser['Role'] !== 'Sorveglianza')): ?>
+        <div class="widget wide-widget">
+            <div class="widget-header yellow-header">
+                <i class="fas fa-laptop-code fa-2x"></i>
                 <div class="header-text">
-                    OPERAZIONI STRUTTURA
-                    <span>Servizi per i dipendenti e task strutturali.</span>
+                    PANNELLO DI CONTROLLO
+                    <span>Accesso centralizzato a tutti gli strumenti di gestione e monitoraggio.</span>
                 </div>
             </div>
             
             <div class="widget-apps-container">
+                <!-- Sezione Manutenzione (Admin Level) -->
                 <?php if ($badgeLevel == 4): ?>
                     <a href="maintenance_dashboard.php" class="app-icon">
                         <i class="fas fa-tools text-yellow"></i>
@@ -509,30 +511,21 @@
                         <i class="fas fa-bell text-red"></i>
                         <span>Gestione<br>Emergenze</span>
                     </a>
-                <?php endif; ?>
-                
-                <?php if ($badgeLevel >= 2 && $badgeLevel < 4 && $currentUser['Role'] !== 'Chimico'): ?>
-                    <a href="employee_dashboard.php" class="app-icon">
-                        <i class="fas fa-tasks text-green"></i>
-                        <span>Task<br></span>
+                    <a href="manage_shifts.php" class="app-icon">
+                        <i class="far fa-clock text-green"></i>
+                        <span>Gestione<br>Turni</span>
                     </a>
                 <?php endif; ?>
-            </div>
-        </div>
-        <?php endif; ?>
 
-        <!-- Isola 2: Pannello ICT Controllo Live (Admin solo) -->
-        <?php if ($badgeLevel == 4 || $currentUser['Role'] === 'Sorveglianza'): ?>
-        <div class="widget">
-            <div class="widget-header yellow-header">
-                <i class="fas fa-laptop-code fa-2x"></i>
-                <div class="header-text">
-                    CONTROL PANEL
-                    <span>Controllo Live del traffico e monitoraggio accessi.</span>
-                </div>
-            </div>
-            
-            <div class="widget-apps-container">
+                <!-- Sezione Task (Employees Level 2+) -->
+                <?php if ($badgeLevel >= 2 && $badgeLevel < 4 && $currentUser['Role'] !== 'Chimico' && $currentUser['Role'] !== 'Sorveglianza'): ?>
+                    <a href="employee_dashboard.php" class="app-icon">
+                        <i class="fas fa-tasks text-green"></i>
+                        <span>Le Mie Task<br> operative</span>
+                    </a>
+                <?php endif; ?>
+
+                <!-- Sezione Monitoraggio e Logs (Admin or Sorveglianza) -->
                 <?php if ($badgeLevel == 4 || $currentUser['Role'] === 'Sorveglianza'): ?>
                     <a href="logs.php" class="app-icon">
                         <i class="fas fa-history text-blue"></i>
@@ -547,6 +540,7 @@
                     </a>
                 <?php endif; ?>
 
+                <!-- Toggle Monitoraggio Live (Sorveglianza) -->
                 <?php if ($currentUser['Role'] === 'Sorveglianza'): ?>
                     <?php 
                     $currentMode = isset($_SESSION['admin_mode']) ? $_SESSION['admin_mode'] : 'monitor';
@@ -573,13 +567,13 @@
         </div>
         <?php endif; ?>
 
-        <!-- Isola 3: Lavoro Chimico -->
+        <!-- Interfaccia per chi fa esperimenti in lab -->
         <?php if ($currentUser['Role'] === 'Chimico'): ?>
         <div class="widget">
             <div class="widget-header pink-header">
                 <i class="fas fa-vial fa-2x"></i>
                 <div class="header-text">
-                    STRUMENTI – LABORATORIO
+                    STRUMENTI - LABORATORIO
                     <span>Risorse e applicativi per sintesi chimica.</span>
                 </div>
             </div>
@@ -600,7 +594,7 @@
         </div>
         <?php endif; ?>
 
-        <!-- Isola 4: Mappa Gates (Wide) -->
+        <!-- La mappa interattiva -->
         <div class="widget wide-widget">
             <div class="widget-header cyan-header">
                 <i class="fas fa-map-marked-alt fa-2x"></i>
@@ -614,13 +608,13 @@
             </div>
         </div>
 
-        <!-- Isola 5: Pannello Amministrazione Personale (Wide) -->
+        <!-- Gestione degli utenti (solo per Admin) -->
         <?php if ($badgeLevel == 4): ?>
         <div class="widget wide-widget">
             <div class="widget-header green-header">
                 <i class="fas fa-users-cog fa-2x"></i>
                 <div class="header-text">
-                    RISORSE E CONVENZIONI
+                    RISORSE
                     <span>Area riservata per assunzioni, rinnovi badge e licenziamenti.</span>
                 </div>
             </div>
@@ -633,7 +627,7 @@
     </main>
 </div>
 
-<!-- Generic Confirm Modal for Dashboard -->
+<!-- Finestra di conferma generica -->
 <div id="genericConfirmModal" style="display:none; position:fixed; z-index:999999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(5px); overflow:auto;">
     <div style="background-color:#fff; margin:10% auto; padding:0; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 25px rgba(0,0,0,0.2); animation: slideIn 0.3s ease-out;">
         <div style="background: linear-gradient(135deg, #f39c12, #e67e22); padding:20px; border-radius:15px 15px 0 0; color:white; display:flex; justify-content:space-between; align-items:center;">
@@ -660,36 +654,38 @@
 </style>
 
 <script>
-// Generic Confirm Modal Logic
-let currentGenericFormId = null;
+// Gestiamo le finestre che chiedono "Sei sicuro?"
+if (typeof currentGenericFormId === 'undefined') {
+    window.currentGenericFormId = null;
 
-function openGenericConfirmModal(message, formId) {
-    document.getElementById('genericConfirmMessage').innerText = message;
-    currentGenericFormId = formId;
-    document.getElementById('genericConfirmModal').style.display = 'block';
-}
-
-function closeGenericConfirmModal() {
-    document.getElementById('genericConfirmModal').style.display = 'none';
-    currentGenericFormId = null;
-}
-
-document.getElementById('confirmGenericBtn').addEventListener('click', function() {
-    if(currentGenericFormId) {
-        document.getElementById(currentGenericFormId).submit();
+    window.openGenericConfirmModal = function(message, formId) {
+        document.getElementById('genericConfirmMessage').innerText = message;
+        window.currentGenericFormId = formId;
+        document.getElementById('genericConfirmModal').style.display = 'block';
     }
-});
 
-// Close modal when clicking outside
-window.addEventListener('click', function(event) {
-    const genericModalEl = document.getElementById('genericConfirmModal');
-    if (event.target == genericModalEl) {
-        closeGenericConfirmModal();
+    window.closeGenericConfirmModal = function() {
+        document.getElementById('genericConfirmModal').style.display = 'none';
+        window.currentGenericFormId = null;
     }
-});
+
+    document.getElementById('confirmGenericBtn').addEventListener('click', function() {
+        if(window.currentGenericFormId) {
+            document.getElementById(window.currentGenericFormId).submit();
+        }
+    });
+
+    // Se clicchi fuori dalla finestra la chiudiamo
+    window.addEventListener('click', function(event) {
+        const genericModalEl = document.getElementById('genericConfirmModal');
+        if (event.target == genericModalEl) {
+            closeGenericConfirmModal();
+        }
+    });
+}
 </script>
 
-<!-- Scripts dinamici per Mappa -->
+<!-- Codice per aggiornare la mappa quando ci si muove -->
 <?php if ($currentUser['Role'] === 'Sorveglianza' && isset($currentMode) && $currentMode === 'interactive'): ?>
 <script>
 window.addEventListener('message', function(event) {

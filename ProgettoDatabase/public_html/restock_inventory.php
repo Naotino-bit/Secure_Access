@@ -19,7 +19,7 @@ $stmt = $conn->prepare("UPDATE Inventory SET Quantity = Quantity + ? WHERE IdIte
 $stmt->bind_param("ii", $qty, $idItem);
 
 if ($stmt->execute()) {
-    // Log
+    // Scriviamo nel diario degli admin cosa abbiamo rifornito
     $user = $_SESSION['user'];
     $desc = "Rifornimento inventario: Item $idItem + $qty pezzi da $user";
     $conn->query("INSERT INTO AdminLogs (Description, DateTime) VALUES ('$desc', NOW())");

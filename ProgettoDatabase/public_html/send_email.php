@@ -1,16 +1,13 @@
 <?php
 
-// SISTEMARE LA PASSWORD E METTERE EFFETTIVAMENTE UNA MAIL 
-// CONSIDERARE L'IMPLEMENTAZIONE DEI FILE .env 
-// Richiesta di prolungare il badge per email
-// Se l'accesso ai gate viene negato (scaduto), l'utente può il rinnovo del badge attraverso una mail automatica per gli amministratori
+// Gestiamo le mail che partono dal sistema
 
-//Classi di PHPMailer
+// Portiamo dentro PHPMailer per far funzionare tutto
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
-//Carichi i file della libreria, quindi il codice php
+// Ci servono questi file per parlare con i server di posta
 require 'PHPMailer/src/Exception.php';
 require 'PHPMailer/src/PHPMailer.php';  
 require 'PHPMailer/src/SMTP.php';
@@ -19,7 +16,7 @@ function SendVerificationEmail($recipientEmail, $token){
     $mail = new PHPMailer(true);
 
     try {
-        //prendiamo da .env le informazioni che ci servono e se non le troviamo mettiamo quelle default
+        // Leggiamo i segreti dal file .env
         $stmpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
         $smtpUser = getenv('SMTP_USER');
         $smtpPass = getenv('SMTP_PASSWORD');
@@ -39,7 +36,7 @@ function SendVerificationEmail($recipientEmail, $token){
         $mail->Port = $smtpPort;
 
 
-        //SONO OPZIONI SSL CHE SERVONO MENTRE LAVORIAMO IN LOCALE
+        // Queste servono per farlo funzionare mentre facciamo i test
         $mail->SMTPOptions = array(
             'ssl' => array (
                 'verify_peer' => false,
@@ -60,13 +57,11 @@ function SendVerificationEmail($recipientEmail, $token){
         $mail->Body = "
             <div style='font-family: \"Segoe UI\", Helvetica, Arial, sans-serif; background-color: #f4f7f6; padding: 40px 0; color: #333;'>
                 <div style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);'>
-                    <!-- Header -->
                     <div style='background: linear-gradient(135deg, #4FACFE, #00F2FE); padding: 30px; text-align: center; color: #ffffff;'>
                         <h1 style='margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase;'>The Facility</h1>
                         <p style='margin: 5px 0 0; opacity: 0.8; font-size: 14px;'>Secure Access Control System</p>
                     </div>
 
-                    <!-- Body -->
                     <div style='padding: 40px; line-height: 1.6;'>
                         <h2 style='color: #2c3e50; margin-top: 0;'>Benvenuto a Bordo!</h2>
                         <p>Grazie per aver completato la registrazione su <strong>The Facility</strong>.</p>
@@ -80,7 +75,6 @@ function SendVerificationEmail($recipientEmail, $token){
                         <p style='font-size: 12px; word-break: break-all;'><a href='$link' style='color: #3498db;'>$link</a></p>
                     </div>
 
-                    <!-- Footer -->
                     <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eeeeee; font-size: 12px; color: #95a5a6;'>
                         <p style='margin: 0;'>Questo è un messaggio automatico, si prega di non rispondere.</p>
                         <p style='margin: 5px 0 0;'>Se non hai richiesto tu questa iscrizione, ignora semplicemente questa email.</p>

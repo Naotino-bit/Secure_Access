@@ -15,7 +15,7 @@ if (empty($idTask)) {
 $conn->begin_transaction();
 
 try {
-    // 1. Fetch Task Info & Validate Time
+    // Prendiamo i dati della task e vediamo se è l'ora giusta
     $stmt = $conn->prepare("SELECT Type, StartTime, EndTime, Status FROM Tasks WHERE IdTask = ? FOR UPDATE");
     $stmt->bind_param("i", $idTask);
     $stmt->execute();
@@ -29,7 +29,7 @@ try {
     $start = new DateTime($task['StartTime']);
     $end = new DateTime($task['EndTime']);
 
-    // --- CHECK SHIFT (ORARIO LAVORATIVO) ---
+    // Controlliamo se non sta facendo gli straordinari non pagati
     $stmtShift = $conn->prepare("
         SELECT S.Start, S.End 
         FROM Users U 
@@ -58,11 +58,10 @@ try {
         }
     }
 
-    // 2. Determine Action
+    // Capiamo se la task è finita bene o se è tempo di riassegnarla
     $action = $_POST['action'] ?? 'complete';
 
     if ($action == 'expire') {
-        // --- EXPIRE LOGIC ---
         // Validate it is actually expired or at least past start time? 
         // Logic says "if not available yet" it's disabled, so user only sees this if expired.
         // We double check strictly if $now > $end to be safe, or just trust the button availability?
@@ -82,7 +81,6 @@ try {
         $msg = "Task segnalata come Scaduta. In attesa di riassegnazione.";
 
     } else {
-        // --- COMPLETE LOGIC ---
         
         if ($task['Status'] == 'Completed') {
             throw new Exception("Task già completata.");
@@ -92,7 +90,7 @@ try {
             throw new Exception("Task non eseguibile in questo momento (Fuori orario).");
         }
 
-        // Execute Logic Based on Type
+        // Facciamo il lavoro vero e proprio
         if ($task['Type'] == 'Maintenance') {
             // Find the Gate associated with this task
             // We link via MaintenanceTasks
@@ -101,10 +99,10 @@ try {
             $mTask = $resM->fetch_assoc();
             $idGate = $mTask['IdGate'];
 
-            // Reset Wear
+            // Portiamo l'usura a zero
             $conn->query("UPDATE Gates SET Wear = 0 WHERE IdGate = $idGate");
 
-            // Check inventory items
+            // Vediamo se abbiamo i pezzi di ricambio
             $resItems = $conn->query("SELECT IdItem, Description, Quantity FROM Inventory WHERE IdItem = 1");
             $item = $resItems->fetch_assoc();
             if ($item['Quantity'] == 0) {

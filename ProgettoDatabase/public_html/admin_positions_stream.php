@@ -11,7 +11,7 @@ if (!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user'];
 
-// Verifica autorizzazione: Admin (Livello 4) o Sorveglianza (Livello 3)
+// Controllo se può sbirciare la mappa
 $authQuery = "
     SELECT B.BadgeLevel, S.Role
     FROM Users U 
@@ -34,10 +34,10 @@ if (!$isAuthorized) {
     exit();
 }
 
-// Release session lock so other requests (like page reload) are not blocked
+// Sblocchiamo la sessione così non si pianta tutto
 session_write_close();
 
-// SSE headers
+// Prepariamo la linea per mandare i dati in tempo reale
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
 header('Connection: keep-alive');
@@ -52,7 +52,7 @@ while (ob_get_level() > 0) {
 
 $lastId = isset($_GET['last_id']) ? (int)$_GET['last_id'] : 0;
 
-// Loop breve: in ambiente LAMP spesso PHP viene killato -> teniamolo leggero
+// Facciamo una pausa tra un controllo e l'altro per non appesantire tutto
 $startedAt = time();
 $maxSeconds = 60; // il browser riapre automaticamente EventSource
 
@@ -61,7 +61,7 @@ while (true) {
         break;
     }
     if ((time() - $startedAt) > $maxSeconds) {
-        // forziamo una reconnessione pulita
+        // chiudiamo e facciamo ricollegare così puliamo tutto
         echo "event: session_terminated\n";
         echo "data: {}\n\n";
         @flush();
@@ -115,7 +115,7 @@ while (true) {
     $q->close();
 
     if (!$sentAny) {
-        // keepalive ogni ~2s
+        // mandiamo un segnale ogni tanto per dire che siamo vivi
         echo "event: ping\n";
         echo "data: {\"t\":\"" . date('c') . "\"}\n\n";
     }

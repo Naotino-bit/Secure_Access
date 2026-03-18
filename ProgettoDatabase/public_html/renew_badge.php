@@ -9,7 +9,7 @@ if (!isset($_SESSION['user'])) {
 
 $email_admin = $_SESSION['user'];
 
-// Controllo privilegi (Solo Admin = 4)
+// Solo chi comanda può allungare la vita ai badge
 $queryAdmin = "SELECT B.BadgeLevel FROM Users U JOIN Badges B ON U.IdBadge = B.IdBadge WHERE U.Email = ?";
 $stmtA = $conn->prepare($queryAdmin);
 $stmtA->bind_param("s", $email_admin);
@@ -27,7 +27,7 @@ if (!$adminData || $adminData['BadgeLevel'] != 4) {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email_to_renew'])) {
     $email_to_renew = $_POST['email_to_renew'];
 
-    // Ottieni ID Badge dell'utente da rinnovare
+    // Vediamo quale badge dobbiamo allungare
     $qBadge = "SELECT IdBadge FROM Users WHERE Email = ?";
     $stmtB = $conn->prepare($qBadge);
     $stmtB->bind_param("s", $email_to_renew);
@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email_to_renew'])) {
     if ($row = $resB->fetch_assoc()) {
         $idBadge = $row['IdBadge'];
         
-        // Rinnovo di 1 anno dalla data attuale
+        // Regaliamo altri 365 giorni di accesso
         $newExpiration = date('Y-m-d H:i:s', strtotime('+1 year'));
         
         $updateQuery = "UPDATE Badges SET ExpirationDate = ? WHERE IdBadge = ?";

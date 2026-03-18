@@ -7,7 +7,7 @@ if (!isset($_SESSION['user']) || $_SERVER['REQUEST_METHOD'] != 'POST') {
     exit();
 }
 
-// 1. INPUT
+// Vediamo cosa ci hanno mandato
 $taskType = $_POST['task_type'] ?? '';
 $idEmployee = $_POST['id_employee'];
 $startTime = $_POST['start_time'];
@@ -27,10 +27,10 @@ try {
         throw new Exception("Compila tutti i campi obbligatori.");
     }
 
-    // 2. CREATE PARENT TASK (Status Default = Pending)
+    // Creiamo la task principale (all'inizio è in attesa)
     $typeStr = ($taskType == 'maintenance') ? 'Maintenance' : 'Restock';
     
-    // CHECK IF MAX QUANITY REACHED
+    // Controlliamo se il magazzino è troppo pieno
     if ($taskType == 'restock') {
         $idItem = $_POST['target_item_id'];
         $qty = intval($_POST['restock_quantity']);
@@ -46,7 +46,7 @@ try {
             throw new Exception("Quantità massima raggiunta.");
         }
     }
-    // CHECK IF ASSIGNED TASK ALREADY EXPIRED
+    // Vediamo se la task che stiamo dando è già scaduta
     if (strtotime($endTime) <= time()) {
         throw new Exception("Impossibile pianificare un Task già scaduto.");
     }
@@ -60,9 +60,8 @@ try {
     $idTask = $stmt->insert_id;
     $stmt->close();
 
-    // 3. BRANCHING 
+    // Dividiamo il lavoro in base al tipo
     if ($taskType == 'maintenance') {
-        // --- MAINTENANCE ---
         $idRequest = $_POST['target_gate_req_id'];
         $idItemToConsume = $_POST['consume_item_id'] ?? null; // Optionally store this if needed? For now we just focus on Gate.
 
@@ -83,7 +82,6 @@ try {
         $msg = "Manutenzione pianificata (Task $idTask). Il tecnico dovrà eseguirla nella fascia oraria indicata.";
 
     } elseif ($taskType == 'restock') {
-        // --- RESTOCK ---
         $idItem = $_POST['target_item_id'];
         $qty = intval($_POST['restock_quantity']);
 
@@ -99,7 +97,7 @@ try {
         $msg = "Rifornimento pianificato (Task $idTask). Il magazziniere dovrà eseguirlo nella fascia oraria indicata.";
     }
 
-    // 4. LOG
+    // Segniamo tutto nel registro
     $desc = "Pianificato Task ($typeStr) ID $idTask per Dipendente $idEmployee ($start - $end)";
     $conn->query("INSERT INTO AdminLogs (Description, DateTime) VALUES ('$desc', NOW())");
 

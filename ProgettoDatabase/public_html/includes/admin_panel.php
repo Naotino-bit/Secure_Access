@@ -57,8 +57,7 @@
     <div class="admin-section" style="background: rgba(255,255,255,0.6); border-radius: 15px; padding: 25px; margin-bottom: 30px; border-left: 5px solid #f39c12; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
         <h3 style="color: #d35400; margin-top:0;"><i class="fas fa-id-card-alt"></i> Badge Scaduti</h3>
         <?php
-            // Cerca badge scaduti (Escludendo livello 1 che sono in attesa assunzione)
-            // E escludendo l'admin stesso per sicurezza
+            // Chi ha il badge scaduto ma lavora ancora qui?
             $expiredQuery = "SELECT U.Name, U.Surname, U.Email, B.ExpirationDate, B.BadgeLevel 
                            FROM Users U 
                            JOIN Badges B ON U.IdBadge = B.IdBadge 
@@ -109,7 +108,7 @@
     <div class="admin-section" style="background: rgba(255,255,255,0.6); border-radius: 15px; padding: 25px; margin-bottom: 30px; border-left: 5px solid #3498db; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
         <h3 style="color: #2980b9; margin-top:0;"><i class="fas fa-users"></i> Gestione Personale</h3>
         <?php
-            // Escludiamo l'utente loggato
+            // Una lista di tutti i colleghi (noi esclusi)
             $usersQuery = "SELECT U.Name, U.Surname, U.Email, E.IdRole, B.BadgeLevel, S.Role 
                            FROM Users U 
                            JOIN Employees E ON U.IdUser = E.IdEmployee
@@ -117,7 +116,7 @@
                            JOIN Shifts S ON E.IdRole = S.IdRole
                            WHERE U.Email != ? ORDER BY U.Surname ASC";
             $stmtUsers = $conn->prepare($usersQuery);
-            $stmtUsers->bind_param("s", $email); // $email viene ereditata da dashboard.php
+            $stmtUsers->bind_param("s", $email);
             $stmtUsers->execute();
             $resultUsers = $stmtUsers->get_result();
         ?>
@@ -130,7 +129,7 @@
                             <th style="padding: 15px; text-align: left; color: #495057; font-weight: 600; border-bottom: 2px solid #dee2e6;">Dipendente</th>
                             <th style="padding: 15px; text-align: left; color: #495057; font-weight: 600; border-bottom: 2px solid #dee2e6;">Email</th>
                             <th style="padding: 15px; text-align: left; color: #495057; font-weight: 600; border-bottom: 2px solid #dee2e6;">Ruolo</th>
-                            <th style="padding: 15px; text-align: left; color: #495057; font-weight: 600; border-bottom: 2px solid #dee2e6;">Gestisci Ruolo / Licenzia</th>
+                            <th style="padding: 15px; text-align: left; color: #495057; font-weight: 600; border-bottom: 2px solid #dee2e6;">Gestisci Ruolo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -169,7 +168,7 @@
     </div>
 </div>
 
-<!-- Modal Assunzione -->
+<!-- Finestra per dare il benvenuto ai nuovi -->
 <div id="hiringModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(5px); overflow:auto;">
     <div style="background-color:#fff; margin:5% auto; padding:0; border-radius:15px; width:90%; max-width:800px; box-shadow:0 10px 25px rgba(0,0,0,0.2); animation: slideIn 0.3s ease-out;">
         <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding:20px; border-radius:15px 15px 0 0; color:white; display:flex; justify-content:space-between; align-items:center;">
@@ -178,7 +177,7 @@
         </div>
         
         <div style="padding:30px; display:flex; flex-wrap:wrap; gap:30px;">
-            <!-- Anagrafica Nuovo Dipendente -->
+            <!-- Dati personali di chi vogliamo assumere -->
             <div style="flex:1; min-width:300px; background:#f8f9fa; padding:20px; border-radius:12px; border-left:5px solid #2ecc71;">
                 <h4 style="color:#2c3e50; margin-top:0; border-bottom:2px solid #e9ecef; padding-bottom:10px;"><i class="fas fa-id-card"></i> Anagrafica Candidato</h4>
                 <div id="hiringCandidateDetails" style="font-size:1.05em; line-height:1.6; color:#34495e;">
@@ -186,7 +185,7 @@
                 </div>
             </div>
 
-            <!-- Dati Dipendenti Attuali -->
+            <!-- Vediamo chi fa già lo stesso lavoro -->
             <div id="hiringEmployeesSection" style="flex:1; min-width:300px; background:#f8f9fa; padding:20px; border-radius:12px; border-left:5px solid #3498db;">
                 <h4 style="color:#2c3e50; margin-top:0; border-bottom:2px solid #e9ecef; padding-bottom:10px;"><i class="fas fa-users"></i> Dipendenti Attuali (<span id="hiringRoleName">Ruolo</span>)</h4>
                 <div id="hiringRoleEmployees" style="max-height:200px; overflow-y:auto; padding-right:10px;">
@@ -202,7 +201,7 @@
     </div>
 </div>
 
-<!-- Generic Confirm Modal -->
+<!-- Finestra di conferma per sicurezza -->
 <div id="genericConfirmModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(5px); overflow:auto;">
     <div style="background-color:#fff; margin:10% auto; padding:0; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 25px rgba(0,0,0,0.2); animation: slideIn 0.3s ease-out;">
         <div style="background: linear-gradient(135deg, #f39c12, #e67e22); padding:20px; border-radius:15px 15px 0 0; color:white; display:flex; justify-content:space-between; align-items:center;">
@@ -222,7 +221,6 @@
 </div>
 
 <style>
-/* Custom styled select box */
 .custom-select {
     appearance: none;
     -webkit-appearance: none;
@@ -254,7 +252,6 @@
     from { transform: translateY(-30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
-/* Scrollbar custom per il modal */
 #hiringRoleEmployees::-webkit-scrollbar { width: 6px; }
 #hiringRoleEmployees::-webkit-scrollbar-track { background: #e9ecef; border-radius: 10px; }
 #hiringRoleEmployees::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 10px; }
@@ -265,7 +262,7 @@
 let currentHiringFormId = null;
 
 function openHiringModal(event, email, formId, roleSelectId) {
-    event.preventDefault(); // Blocca l'invio del form
+    event.preventDefault(); // Aspettiamo prima di mandare i dati
     
     const roleSelect = document.getElementById(roleSelectId);
     const selectedRole = roleSelect.value;
@@ -296,7 +293,7 @@ function openHiringModal(event, email, formId, roleSelectId) {
         .then(response => response.json())
         .then(data => {
             if(data.success) {
-                // Popola anagrafica
+                // Inseriamo i dati personali
                 const dob = new Date(data.candidate.DateBirth).toLocaleDateString('it-IT');
                 document.getElementById('hiringCandidateDetails').innerHTML = `
                     <p><strong><i class="fas fa-user"></i> Nome:</strong> ${data.candidate.Name} ${data.candidate.Surname}</p>
@@ -304,7 +301,7 @@ function openHiringModal(event, email, formId, roleSelectId) {
                     <p><strong><i class="fas fa-calendar-alt"></i> Data di Nascita:</strong> ${dob}</p>
                 `;
 
-                // Popola record dipendenti
+                // Facciamo vedere gli altri dipendenti
                 let employeesHtml = '';
                 if(data.employees && data.employees.length > 0) {
                     data.employees.forEach(emp => {
@@ -369,7 +366,7 @@ document.getElementById('confirmGenericBtn').addEventListener('click', function(
     }
 });
 
-// Chiudi cliccando fuori dal modal
+// Se clicchi fuori dalla finestra, lei si chiude
 window.onclick = function(event) {
     const hiringModalEl = document.getElementById('hiringModal');
     const genericModalEl = document.getElementById('genericConfirmModal');

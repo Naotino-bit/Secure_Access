@@ -25,7 +25,7 @@ if (!$idTask || !$newStart || !$newEnd || !$newEmployee) {
 $conn->begin_transaction();
 
 try {
-    // 1. Get Old Task Info
+    // Vediamo cosa è andato storto con la vecchia task
     $stmt = $conn->prepare("
         SELECT * FROM Tasks 
         WHERE IdTask = ? AND Status = 'Expired' 
@@ -42,7 +42,7 @@ try {
     $oldTask = $res->fetch_assoc();
     $stmt->close();
     
-    // Time Validation
+    // Controlliamo che gli orari abbiano senso
     $startDT = new DateTime($newStart);
     $endDT = new DateTime($newEnd);
     $now = new DateTime();
@@ -51,10 +51,10 @@ try {
         throw new Exception("L'orario di inizio deve essere precedente alla fine.");
     }
     
-    // 2. Archive Old Task
+    // Cancelliamo la vecchia task
     $conn->query("UPDATE Tasks SET Status = 'Cancelled' WHERE IdTask = $idTask");
     
-    // 3. Create New Task
+    // Creiamo la nuova task da zero
     $type = $oldTask['Type'];
     $sqlNew = "INSERT INTO Tasks (Type, StartTime, EndTime, IdEmployee, Status) VALUES (?, ?, ?, ?, 'Pending')";
     $stmtNew = $conn->prepare($sqlNew);
@@ -68,7 +68,7 @@ try {
     $newIdTask = $stmtNew->insert_id;
     $stmtNew->close();
     
-    // 4. Link Details based on Type
+    // Impostiamo i dettagli in base al tipo di lavoro
     if ($type === 'Maintenance') {
         // Get linked Gate ID from OLD task
         $resM = $conn->query("SELECT IdGate FROM MaintenanceTasks WHERE IdTask = $idTask");
@@ -100,7 +100,7 @@ try {
         }
     }
 
-    // 5. Log
+    // Segniamo tutto nel registro dei capi
     $logDesc = "Admin ha riassegnato Task Scaduta $idTask -> Nuova Task $newIdTask a Emp $newEmployee";
     $conn->query("INSERT INTO AdminLogs (Description, DateTime) VALUES ('$logDesc', NOW())");
 

@@ -1,4 +1,5 @@
 <?php
+// Qui ci colleghiamo al database con i dati del file .env
 date_default_timezone_set('Europe/Rome');
 $servername = getenv('DB_HOST') ?: 'mysql_db_project';
 $username = getenv('DB_USER') ?: 'root';
@@ -11,6 +12,7 @@ if ($conn->connect_error) {
     die("Errore di connessione al DataBase");
 } 
 
+// Impostiamo il charset per non avere problemi con gli accenti
 $conn->set_charset("utf8mb4");
 
 ?>

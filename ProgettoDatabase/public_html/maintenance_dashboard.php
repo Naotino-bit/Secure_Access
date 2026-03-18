@@ -9,8 +9,8 @@ if (!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user'];
 
-// 1. Fetch Maintenance Requests (Status = Pending)
-//    These are the targets for Technicians.
+// Vediamo quali riparazioni sono ancora da fare
+// Cose che i tecnici devono sistemare
 $queryReq = "
     SELECT MR.IdRequest, MR.Priority, MR.Status, MR.CreatedAt, G.IdGate, G.Wear, S.Description as SectorDesc
     FROM MaintenanceRequests MR
@@ -24,9 +24,9 @@ $requests = [];
 while($row = $resReq->fetch_assoc()) $requests[] = $row;
 
 
-// 2. Fetch Technicians AND Warehouse Workers (Magazziniere)
-//    We fetch all employees and will filter by role in JS or PHP.
-//    Assuming Role in Employees table: 'Manutentore', 'Tecnico', 'Magazziniere', 'Admin'.
+// Recuperiamo la lista di chi lavora
+// Prendiamo tutti e li dividiamo per quello che sanno fare
+// Attenzione ai ruoli
 $queryEmp = "
     SELECT E.IdEmployee, E.IdRole, U.Name, U.Surname, S.Role 
     FROM Employees E 
@@ -39,24 +39,22 @@ $technicians = [];
 $restockers = [];
 
 while($row = $resEmp->fetch_assoc()) {
-    // Categorize based on Role string. Adjust based on your actual DB values.
-    // Spec says: "tipo di Dipendente (tecnico o magazziniere)"
-    // Let's assume generic matching.
+    // Separiamo chi aggiusta da chi carica la roba
     $role = strtolower($row['Role']);
     
-    // Technicians
+    // I Tecnici
     if (strpos($role, 'tecnico') !== false || strpos($role, 'manutentore') !== false || strpos($role, 'admin') !== false) {
         $technicians[] = $row;
     }
     
-    // Restockers
+    // I Magazzinieri
     if (strpos($role, 'magazziniere') !== false || strpos($role, 'admin') !== false) {
         $restockers[] = $row;
     }
 }
 
 
-// 3. Fetch Inventory
+// Vediamo quanta roba è rimasta
 $queryInv = "SELECT * FROM Inventory";
 $resInv = $conn->query($queryInv);
 $inventory = [];
@@ -68,6 +66,7 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
 <head>
     <meta charset="UTF-8">
     <title>Manutenzione & Rifornimenti UI</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%234facfe' d='M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C25.5 92 16 110.1 16 130.1c0 231 161.4 336.8 226.7 372.4a47.79 47.79 0 0 0 46.5 0C354.6 466.9 512 361.1 512 130.1c0-20-9.5-38.1-26.6-46.4z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -120,7 +119,7 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
         }
         button.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6); }
 
-        /* Status Messages */
+        /* Messaggi di stato */
         .alert { padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; text-align: left; font-weight: 600; animation: slideDown 0.4s ease-out; display: flex; align-items: center; gap: 10px; }
         .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
@@ -152,7 +151,7 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
         <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($_GET['error']); ?></div>
     <?php endif; ?>
 
-    <!-- SEZIONE ALERT: TASK SCADUTE -->
+    <!-- Occhio: ci sono task scadute -->
     <?php
     $queryExpired = "
         SELECT T.IdTask, T.Type, T.StartTime, T.EndTime, T.IdEmployee, U.Name, U.Surname, T.Status
@@ -223,7 +222,7 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
 
     <form action="assign_task.php" method="POST">
         
-        <!-- SEZIONE 1: TIPO DI INTERVENTO -->
+        <!-- 1. Che tipo di lavoro è? -->
         <div class="panel">
             <h2><i class="fas fa-users-cog"></i> 1. Tipologia Intervento e Personale</h2>
             <div class="form-row">
@@ -244,7 +243,7 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
             </div>
         </div>
 
-        <!-- SEZIONE 2: PIANIFICAZIONE -->
+        <!-- 2. Quando bisogna farlo? -->
         <div class="panel">
             <h2><i class="fas fa-calendar-alt"></i> 2. Pianificazione Temporale</h2>
             <div class="form-row">
@@ -259,11 +258,11 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
             </div>
         </div>
 
-        <!-- SEZIONE 3: OBIETTIVO (DINAMICO) -->
+        <!-- 3. Cosa bisogna fare? -->
         <div class="panel" id="target_panel">
             <h2 id="target_title"><i class="fas fa-bullseye"></i> 3. Dettagli Operazione</h2>
             
-            <!-- CASO MANUTENZIONE: SCEGLI PORTA -->
+            <!-- SE RIPARA - SCEGLI PORTA -->
             <div id="maintenance_target" class="hidden">
                  <div class="form-group">
                     <label>Seleziona Porta da Riparare (Richieste Pendenti)</label>
@@ -281,7 +280,7 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
                 </div>
             </div>
 
-            <!-- CASO RIFORNIMENTO: SCEGLI ITEM -->
+            <!-- SE RIFORNISCE - SCEGLI ITEM -->
             <div id="restock_target" class="hidden">
                 <div class="form-row">
                     <div class="form-group">
@@ -334,7 +333,7 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
 </div>
 
 <script>
-    // Dati passati da PHP a JS
+    // Mandiamo i dati a Javascript
     const technicians = <?php echo json_encode($technicians); ?>;
     const restockers = <?php echo json_encode($restockers); ?>;
 
@@ -344,7 +343,7 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
         const maintDiv = document.getElementById('maintenance_target');
         const restockDiv = document.getElementById('restock_target');
         
-        // 1. Update Employee List
+        // 1. Aggiorniamo la lista dei dipendenti
         employeeSelect.innerHTML = '<option value="">-- Seleziona --</option>';
         let list = [];
         if (type === 'maintenance') list = technicians;
@@ -357,11 +356,11 @@ while($row = $resInv->fetch_assoc()) $inventory[] = $row;
             employeeSelect.appendChild(opt);
         });
 
-        // 2. Toggle Target Section
+        // 2. Mostriamo la sezione giusta
         if (type === 'maintenance') {
             maintDiv.classList.remove('hidden');
             restockDiv.classList.add('hidden');
-            // Required logic
+            // Vediamo cosa è obbligatorio compilare
             document.getElementById('target_gate_req_id').required = true;
             document.getElementById('target_item_id').required = false;
         } else if (type === 'restock') {

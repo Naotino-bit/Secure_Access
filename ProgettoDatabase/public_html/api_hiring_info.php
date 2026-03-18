@@ -2,7 +2,7 @@
 require "db_connection.php";
 session_start();
 
-// Check if user is logged in
+// Vediamo se l'utente è entrato
 if (!isset($_SESSION['user'])) {
     http_response_code(403);
     echo json_encode(["error" => "Accesso negato"]);
@@ -11,7 +11,7 @@ if (!isset($_SESSION['user'])) {
 
 $adminEmail = $_SESSION['user'];
 
-// Verify Admin Privileges
+// Controlliamo se è un admin
 $queryAdmin = "
     SELECT B.BadgeLevel
     FROM Users U
@@ -39,7 +39,7 @@ if (empty($candidateEmail) || empty($roleName)) {
     exit();
 }
 
-// 1. Fetch Candidate Data
+// Prendiamo i dati di chi si è candidato
 $stmt = $conn->prepare("SELECT Name, Surname, Email, DateBirth FROM Users WHERE Email = ?");
 $stmt->bind_param("s", $candidateEmail);
 $stmt->execute();
@@ -52,7 +52,7 @@ if (!$candidate) {
     exit();
 }
 
-// Map Role String mapping exactly like in promote.php just string to search
+// Vediamo che ruolo sta cercando di dare
 $searchTerm = "";
 if ($roleName == 'Admin' || $roleName == 'Amministratore') $searchTerm = 'Amministratore';
 elseif ($roleName == 'Tecnico') $searchTerm = 'Tecnico';
@@ -61,7 +61,7 @@ elseif ($roleName == 'Chimico') $searchTerm = 'Chimico';
 elseif ($roleName == 'Sorveglianza') $searchTerm = 'Sorveglianza';
 else $searchTerm = $roleName; // Fallback
 
-// 2. Fetch Current Employees for this Role
+// Chi sono i futuri colleghi?
 $employeesQuery = "
     SELECT U.Name, U.Surname, U.Email 
     FROM Users U 
@@ -80,7 +80,7 @@ while ($row = $resEmployees->fetch_assoc()) {
 }
 $stmt->close();
 
-// Return JSON Response
+// Mandiamo indietro i dati in formato JSON
 echo json_encode([
     "success" => true,
     "candidate" => $candidate,

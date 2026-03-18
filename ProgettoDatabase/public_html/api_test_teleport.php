@@ -1,6 +1,6 @@
 <?php
 require("db_connection.php");
-// debug output of the teleport query
+// Controlliamo chi dovrebbe essere teletrasportato fuori
 $teleportQuery = "
     SELECT U.IdBadge, A.IdSectorTo, S.End, CURRENT_TIME() as now_time, ADDTIME(S.End, '00:30:00') as threshold
     FROM Users U

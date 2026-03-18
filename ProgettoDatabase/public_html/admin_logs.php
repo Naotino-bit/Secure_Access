@@ -2,7 +2,7 @@
 require "db_connection.php";
 session_start();
 
-// Controllo se Admin
+// Vediamo se chi entra è un admin
 if (!isset($_SESSION['user'])) {
     header("Location: index.php");
     exit();
@@ -31,9 +31,10 @@ $stmt->close();
 <head>
     <meta charset="UTF-8">
     <title>Registro Azioni Admin (Logs)</title>
-    <!-- Includiamo FontAwesome come nel resto del sito -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%234facfe' d='M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C25.5 92 16 110.1 16 130.1c0 231 161.4 336.8 226.7 372.4a47.79 47.79 0 0 0 46.5 0C354.6 466.9 512 361.1 512 130.1c0-20-9.5-38.1-26.6-46.4z'/%3E%3C/svg%3E">
+    <!-- Carichiamo le icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Flatpickr per selezione Date Elegante -->
+    <!-- Un bel calendario per le date -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
     <style>
@@ -66,13 +67,22 @@ $stmt->close();
         
         <h1><i class="fas fa-user-shield" style="color: #8e44ad;"></i> Registro Azioni Amministratore</h1>
 
-        <!-- Filtro Data -->
+        <!-- Scegliamo il giorno -->
         <div class="filter-card">
-            <form method="GET" action="admin_logs.php">
-                <label for="filter_date" style="font-weight: bold; margin-right: 10px; color: #2c3e50;"><i class="fas fa-calendar-alt"></i> Seleziona Giorno:</label>
-                <?php $currentDate = $_GET['filter_date'] ?? date('Y-m-d'); ?>
-                <input type="text" id="filter_date" class="date-picker-custom" name="filter_date" value="<?php echo htmlspecialchars($currentDate); ?>" placeholder="gg/mm/aaaa">
-                <button type="submit" class="btn"><i class="fas fa-search"></i> Filtra Dati</button>
+            <form method="GET" action="admin_logs.php" style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="filter_date" style="font-weight: bold; color: #2c3e50;"><i class="fas fa-calendar-alt"></i> Giorno:</label>
+                    <?php $currentDate = $_GET['filter_date'] ?? date('Y-m-d'); ?>
+                    <input type="text" id="filter_date" class="date-picker-custom" name="filter_date" value="<?php echo htmlspecialchars($currentDate); ?>" placeholder="gg/mm/aaaa">
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="search_query" style="font-weight: bold; color: #2c3e50;"><i class="fas fa-search"></i> Cerca:</label>
+                    <?php $searchQuery = $_GET['search'] ?? ''; ?>
+                    <input type="text" id="search_query" name="search" value="<?php echo htmlspecialchars($searchQuery); ?>" placeholder="Azione, email, ruolo..." style="padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; outline: none; width: 250px;">
+                </div>
+
+                <button type="submit" class="btn"><i class="fas fa-filter"></i> Applica Filtri</button>
             </form>
         </div>
 
@@ -86,10 +96,13 @@ $stmt->close();
                 </thead>
                 <tbody>
             <?php
-            // QUERY AdminLogs con filtro per Data
-            $sql = "SELECT DateTime, Description FROM AdminLogs WHERE DATE(DateTime) = ? ORDER BY DateTime DESC";
+            // Mostriamo cosa hanno combinato gli admin
+            $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
+            $searchParam = "%$searchTerm%";
+
+            $sql = "SELECT DateTime, Description FROM AdminLogs WHERE DATE(DateTime) = ? AND Description LIKE ? ORDER BY DateTime DESC";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("s", $currentDate);
+            $stmt->bind_param("ss", $currentDate, $searchParam);
             $stmt->execute();
             $result = $stmt->get_result();
 
@@ -98,7 +111,7 @@ $stmt->close();
                     echo "<tr>";
                     echo "<td class='log-date'>" . date('d/m/Y H:i:s', strtotime($row['DateTime'])) . "</td>";
                     
-                    // Optional styling per le descrizioni se contengono keyword particolari:
+                    // Cambiamo colore in base al tipo di azione
                     $desc = htmlspecialchars($row['Description']);
                     if (strpos($desc, 'livello 1') !== false || strpos(strtolower($desc), 'licenzia') !== false) {
                         $desc = "<span style='color: #c0392b; font-weight:bold;'><i class='fas fa-user-minus'></i> " . $desc . "</span>";
@@ -116,7 +129,8 @@ $stmt->close();
                     echo "</tr>";
                 }
             } else {
-                echo "<tr><td colspan='2' style='text-align:center; padding: 30px; color: #7f8c8d;'><i class='fas fa-folder-open' style='font-size:3em; display:block; margin-bottom:10px; color:#bdc3c7;'></i> Nessuna azione registrata per il giorno <strong>" . htmlspecialchars(date('d/m/Y', strtotime($currentDate))) . "</strong>.</td></tr>";
+                $searchSuffix = $searchTerm ? " e ricerca '<strong>" . htmlspecialchars($searchTerm) . "</strong>'" : "";
+                echo "<tr><td colspan='2' style='text-align:center; padding: 30px; color: #7f8c8d;'><i class='fas fa-folder-open' style='font-size:3em; display:block; margin-bottom:10px; color:#bdc3c7;'></i> Nessuna azione registrata per il giorno <strong>" . htmlspecialchars(date('d/m/Y', strtotime($currentDate))) . "</strong>{$searchSuffix}.</td></tr>";
             }
             $stmt->close();
             ?>
@@ -125,7 +139,7 @@ $stmt->close();
         </div>
     </div>
     
-    <!-- Flatpickr JS -->
+    <!-- Script per il calendario -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/it.js"></script>
     <script>

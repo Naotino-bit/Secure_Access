@@ -9,7 +9,7 @@ if (!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user'];
 
-// Verifica se è Amministratore (BadgeLevel 4)
+// Solo chi comanda può venire qui
 $query = "SELECT U.IdBadge, B.BadgeLevel 
           FROM Users U 
           JOIN Badges B ON U.IdBadge = B.IdBadge 
@@ -26,7 +26,7 @@ if (!$userData || $userData['BadgeLevel'] != 4) {
     exit();
 }
 
-// --- Gestione Form ---
+// Controlliamo cosa ha premuto l'admin
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'create') {
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } elseif ($_POST['action'] === 'resolve') {
             $eventId = (int)$_POST['event_id'];
-            // Risolve impostando EndTime a NOW()
+            // Risolviamo l'emergenza subito
             $resolveStmt = $conn->prepare("UPDATE EmergencyEvents SET EndTime = NOW() WHERE IdEvent = ?");
             $resolveStmt->bind_param("i", $eventId);
             if ($resolveStmt->execute()) {
@@ -65,8 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// --- Lettura Dati per la Pagina ---
-// Emergenze attive
+// Prendiamo le info per riempire la lista e cerchiamo le emergenze ancora attive
 $activeEmergenciesQ = $conn->query("
     SELECT E.*, S.Description as SectorName 
     FROM EmergencyEvents E 
@@ -75,7 +74,7 @@ $activeEmergenciesQ = $conn->query("
     ORDER BY E.StartTime DESC
 ");
 
-// Tutti i settori per il form
+// Prendiamo tutte le stanze per farle scegliere
 $sectorsQ = $conn->query("SELECT * FROM Sectors ORDER BY Description, IdSector");
 
 ?>
@@ -84,6 +83,7 @@ $sectorsQ = $conn->query("SELECT * FROM Sectors ORDER BY Description, IdSector")
 <head>
     <meta charset="UTF-8">
     <title>Gestione Emergenze</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%234facfe' d='M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C25.5 92 16 110.1 16 130.1c0 231 161.4 336.8 226.7 372.4a47.79 47.79 0 0 0 46.5 0C354.6 466.9 512 361.1 512 130.1c0-20-9.5-38.1-26.6-46.4z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -169,10 +169,10 @@ $sectorsQ = $conn->query("SELECT * FROM Sectors ORDER BY Description, IdSector")
                                 <td><?= date('d/m/Y H:i', strtotime($row['StartTime'])) ?></td>
                                 <td style="color:#e74c3c; font-weight:600;"><?= date('d/m/Y H:i', strtotime($row['EndTime'])) ?></td>
                                 <td>
-                                    <form method="POST" style="margin: 0;">
+                                    <form id="form_resolve_<?= $row['IdEvent'] ?>" method="POST" style="margin: 0;">
                                         <input type="hidden" name="action" value="resolve">
                                         <input type="hidden" name="event_id" value="<?= $row['IdEvent'] ?>">
-                                        <button type="submit" class="btn btn-primary" onclick="return confirm('Sei sicuro di voler risolvere questa emergenza?');"><i class="fas fa-shield-alt"></i> Risolvi Ora</button>
+                                        <button type="button" class="btn btn-primary" onclick="openGenericConfirmModal('Sei sicuro di voler risolvere questa emergenza?', 'form_resolve_<?= $row['IdEvent'] ?>');"><i class="fas fa-shield-alt"></i> Risolvi Ora</button>
                                     </form>
                                 </td>
                             </tr>
@@ -189,7 +189,7 @@ $sectorsQ = $conn->query("SELECT * FROM Sectors ORDER BY Description, IdSector")
 
         <h3><i class="fas fa-power-off" style="color:#e74c3c;"></i> Scatena Nuova Emergenza (Test/Manuale)</h3>
         <div class="form-panel">
-            <form method="POST">
+            <form id="form_create_emergency" method="POST">
                 <input type="hidden" name="action" value="create">
                 
                 <div class="form-group">
@@ -214,10 +214,66 @@ $sectorsQ = $conn->query("SELECT * FROM Sectors ORDER BY Description, IdSector")
                     <input type="number" name="duration" value="60" min="1" required>
                 </div>
 
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Attenzione! Questa azione modificherà l\'accesso ai varchi e allarmerà il sistema. Procedere?');"><i class="fas fa-broadcast-tower"></i> Genera Emergenza</button>
+                <button type="button" class="btn btn-danger" onclick="openGenericConfirmModal('Attenzione! Questa azione modificherà l\'accesso ai varchi e allarmerà il sistema. Procedere?', 'form_create_emergency');"><i class="fas fa-broadcast-tower"></i> Genera Emergenza</button>
             </form>
         </div>
 
+    <!-- Messaggio di conferma per sicurezza -->
+    <div id="genericConfirmModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(5px); overflow:auto;">
+        <div style="background-color:#fff; margin:10% auto; padding:0; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 25px rgba(0,0,0,0.2); animation: slideIn 0.3s ease-out;">
+            <div style="background: linear-gradient(135deg, #f39c12, #e67e22); padding:20px; border-radius:15px 15px 0 0; color:white; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;"><i class="fas fa-exclamation-triangle"></i> Conferma Azione</h3>
+                <span onclick="closeGenericConfirmModal()" style="cursor:pointer; font-size:1.5em; font-weight:bold;">&times;</span>
+            </div>
+            
+            <div style="padding:30px; text-align:center;">
+                <p id="genericConfirmMessage" style="font-size:1.2em; color:#2c3e50; margin:0;">Sei sicuro di voler procedere?</p>
+            </div>
+
+            <div style="padding:20px; background:#f1f3f5; border-radius:0 0 15px 15px; text-align:right;">
+                <button type="button" onclick="closeGenericConfirmModal()" class="btn" style="background:#95a5a6; color:white; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:bold; margin-right:10px; box-shadow:none;"><i class="fas fa-times"></i> Annulla</button>
+                <button type="button" id="confirmGenericBtn" class="btn" style="background:#e67e22; color:white; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:bold; box-shadow:0 4px 6px rgba(230,126,34,0.3);"><i class="fas fa-check-circle"></i> Conferma</button>
+            </div>
+        </div>
     </div>
+
+    <style>
+    @keyframes slideIn {
+        from { transform: translateY(-30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    </style>
+
+    <script>
+    // Gestiamo i messaggi di "Sei sicuro?"
+    if (typeof currentGenericFormId === 'undefined') {
+        window.currentGenericFormId = null;
+
+        window.openGenericConfirmModal = function(message, formId) {
+            document.getElementById('genericConfirmMessage').innerText = message;
+            window.currentGenericFormId = formId;
+            document.getElementById('genericConfirmModal').style.display = 'block';
+        }
+
+        window.closeGenericConfirmModal = function() {
+            document.getElementById('genericConfirmModal').style.display = 'none';
+            window.currentGenericFormId = null;
+        }
+
+        document.getElementById('confirmGenericBtn').addEventListener('click', function() {
+            if(window.currentGenericFormId) {
+                document.getElementById(window.currentGenericFormId).submit();
+            }
+        });
+
+        // Se clicchi fuori dal box, lui si chiude
+        document.addEventListener('click', function(event) {
+            const genericModalEl = document.getElementById('genericConfirmModal');
+            if (event.target == genericModalEl) {
+                closeGenericConfirmModal();
+            }
+        });
+    }
+    </script>
 </body>
 </html>

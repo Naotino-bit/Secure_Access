@@ -1,25 +1,22 @@
 <?php
 
-    //DEBUG: Mostra tutti gli errori a schermo
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
+    // Attiviamo i messaggi d'errore così non brancoliamo nel buio
     require "db_connection.php"; 
     require "send_email.php";
     session_start();
 
-    // Impostazioni Data e Timezone
+    // Impostiamo l'orario di Roma
     date_default_timezone_set('Europe/Rome'); 
     $date = date("Y-m-d H:i:s");
     $expiration = date("Y-m-d H:i:s", strtotime("+1 year")); // Scade tra un anno
 
-    // 1. Controllo se l'utente è già loggato
+    // Se è già dentro lo mandiamo alla dashboard
     if(isset($_SESSION["user"])) { 
         header("Location: dashboard.php");
         exit();
     }
 
-    // 2. Recupero Dati dal Form
+    // Prendiamo quello che ha scritto nel modulo
     $name = trim($_POST["name"] ?? '');
     $surname = trim($_POST["surname"] ?? '');
     $dateBirth = trim($_POST["dateBirth"] ?? '');
@@ -28,32 +25,30 @@
     $password = trim($_POST["password"] ?? '');
     // Reason field removed
 
-    // --- INIZIO CONTROLLI DI SICUREZZA ---
 
-    // Check validità formato email
+    // Vediamo se l'email è scritta bene
     if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
         header("Location: index.php?mode=register&error=email_non_valida");
         exit();
     }
 
-    // Check esistenza dominio email (MX Record)
+    // Controlliamo se l'email esiste davvero
     $domain = substr(strrchr($email, "@"), 1); 
     if (!checkdnsrr($domain, "MX")){ 
         header("Location: index.php?mode=register&error=dominio_inesistente");
         exit();
     }
 
-    // Check complessità password
+    // Vediamo se la password è abbastanza forte da resistere agli hacker
     $passwordRegex = "/^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/";
     if(!preg_match($passwordRegex, $password)){ 
         header("Location: index.php?mode=register&error=password_debole");
         exit();
     }
 
-    // --- FINE CONTROLLI DI SICUREZZA ---
 
 
-    // 3. Controllo se l'email esiste già (in Users)
+    // Vediamo se qualcun altro ha già questa mail
     $query = "SELECT Email FROM Users WHERE Email = ?"; 
     $stmt = $conn->prepare($query) ;
     $stmt->bind_param("s", $email);
@@ -68,13 +63,12 @@
     $stmt->close();
     
 
-    // 4. REGISTRAZIONE CON TRANSAZIONE (Atomica)
-    // Se qualcosa fallisce (DB o Mail), si annulla tutto automaticamente.
+    // Facciamo tutto in un colpo solo, così se qualcosa fallisce non lasciamo sporco
 
     $conn->begin_transaction();
 
     try {
-        // A. Creazione Badge (Livello 1 - Visitatore)
+        // Creiamo il suo primo badge da visitatore
         $stmt = $conn->prepare("INSERT INTO Badges (DateOfIssue, ExpirationDate, BadgeLevel) VALUES (?,?,1)");
         $stmt->bind_param("ss", $date, $expiration);
         
@@ -84,12 +78,11 @@
         $badgeId = $conn->insert_id; // Recuperiamo l'ID appena creato
         $stmt->close();
 
-        // B. Preparazione Dati Utente
+        // Prepariamo il token e la password cifrata
         $token = bin2hex(random_bytes(16)); // Token per la mail
         $hashed_password = password_hash($password, PASSWORD_DEFAULT); // Password cifrata
 
-        // C. Inserimento Visitatore
-        // C. Inserimento Utente (ex Visitatore)
+        // Salviamo l'utente nel database
         $stmt = $conn->prepare("INSERT INTO Users (IdBadge, Name, Surname, DateBirth, Email, Password, token, is_verified) VALUES (?,?,?,?,?,?,?,0)");
         $stmt->bind_param("issssss", $badgeId, $name, $surname, $dateBirth, $email, $hashed_password, $token);
         
@@ -98,7 +91,7 @@
         }
         $stmt->close();
 
-        // D. Invio Email di Verifica
+        // Gli mandiamo la mail per confermare che è proprio lui
         if (SendVerificationEmail($email, $token)){
             
             // SE LA MAIL PARTE -> CONFERMIAMO LE MODIFICHE AL DB

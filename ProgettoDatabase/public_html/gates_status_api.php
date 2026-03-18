@@ -9,14 +9,14 @@ if (!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user'];
 
-// 1. Leggi tutti i Gates
+// Vediamo come sono messi tutti i varchi
 $allGatesQuery = $conn->query("SELECT IdGate, SecurityLevel, IdSectorA, IdSectorB, Wear, IsLocked FROM Gates");
 $gatesData = [];
 while ($gRow = $allGatesQuery->fetch_assoc()) {
     $gatesData[$gRow['IdGate']] = $gRow;
 }
 
-// 2. Calcola l'accessibilità basata sull'utente attuale
+// Vediamo dove può andare l'utente adesso
 $accessibleSectors = [];
 
 $query = "
@@ -33,7 +33,7 @@ $badge = $result->fetch_assoc();
 $stmt->close();
 
 if ($badge) {
-    // Trova l'ultima posizione dell'utente
+    // Cerchiamo l'ultima stanza dove è stato visto
     $LastPos = 1;
     $posQuery = $conn->prepare("SELECT IdSectorTo FROM Accesses WHERE IdBadge = ? AND Result IN ('GRANTED', 'AUTO_EXIT') ORDER BY IdAccess DESC LIMIT 1");
     $posQuery->bind_param("i", $badge['IdBadge']);
@@ -44,7 +44,7 @@ if ($badge) {
     }
     $posQuery->close();
 
-    // Gestione Emergenze
+    // Vediamo se ci sono allarmi attivi
     $emergencyQuery = $conn->query("SELECT * FROM EmergencyEvents WHERE NOW() BETWEEN StartTime AND EndTime");
     $isFireActive = false;
     $gasLeakRooms = [];
@@ -53,7 +53,7 @@ if ($badge) {
         if ($ev['Type'] === 'Fuga di gas') $gasLeakRooms[] = $ev['IdSector'];
     }
 
-    // Troviamo tutte le porte collegate
+    // Quali varchi ci sono qui intorno?
     $PossiblePosQuery = $conn->prepare("SELECT g.IdGate, g.SecurityLevel, g.IdSectorA, g.IdSectorB, g.Wear, g.IsLocked 
                                          FROM Gates g 
                                          WHERE (IdSectorA = ? OR IdSectorB = ?)");
@@ -66,23 +66,23 @@ if ($badge) {
         
         $isAccessible = ($badge['BadgeLevel'] >= $row['SecurityLevel'] && $row['Wear'] < 100 && $row['IsLocked'] == 0);
         
-        // Regola utente pending
+        // Se è un nuovo arrivato non lo facciamo muovere
         if ($badge['BadgeLevel'] == 1 && $LastPos == 1 && $IdSectorTo != 1) {
             $isAccessible = false;
         }
 
-        // Sovrascrittura per Emergenze
+        // Se c'è un'emergenza cambiamo le regole
         if ($isFireActive) {
-            // Se c'è un incendio, controlla se POSSIAMO fisicamente usare la porta (Wear < 100)
+            // Con l'incendio si aprono tutti, se non sono rotti del tutto
             if ($row['Wear'] < 100) {
                 $isAccessible = true;
             } else {
                 $isAccessible = false;
             }
         } elseif (in_array($IdSectorTo, $gasLeakRooms)) {
-            $isAccessible = false; // NON entrare dove c'è fuga di gas
+            $isAccessible = false; // Meglio non entrare se c'è puzza di gas
         } elseif (in_array($LastPos, $gasLeakRooms)) {
-            // Permetti di scappare se sei nella fuga di gas, assumendo che la porta sia funzionante
+            // Se sei già dentro il gas, scappa finché puoi
             if ($row['Wear'] < 100) {
                 $isAccessible = true;
             } else {
@@ -97,10 +97,17 @@ if ($badge) {
     $PossiblePosQuery->close();
 }
 
+$activeEmergencies = [];
+$emgQ = $conn->query("SELECT Type, IdSector FROM EmergencyEvents WHERE NOW() BETWEEN StartTime AND EndTime");
+while ($e = $emgQ->fetch_assoc()) {
+    $activeEmergencies[] = $e;
+}
+
 $response = [
     'success' => true,
     'gates' => $gatesData,
-    'accessible_sectors' => $accessibleSectors
+    'accessible_sectors' => $accessibleSectors,
+    'emergencies' => $activeEmergencies
 ];
 
 header('Content-Type: application/json');

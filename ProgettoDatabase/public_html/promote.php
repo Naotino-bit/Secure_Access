@@ -2,13 +2,13 @@
 require "db_connection.php";
 session_start(); 
 
-// 1. Controllo Login
+// Vediamo se l'utente è dentro
 if(!isset($_SESSION['user'])) {
     header("Location: index.php");
     exit();
 }
 
-// 2. Controllo Permessi Admin
+// Controlliamo se ha la mostrina da admin sulla spalla
 $adminEmail = $_SESSION['user'];
 $queryAdmin = "
     SELECT B.BadgeLevel
@@ -25,7 +25,7 @@ if(!$rowAdmin || $rowAdmin['BadgeLevel'] < 3) {
     die("ACCESSO NEGATO: Non hai i permessi per promuovere gli utenti");
 }
 
-// 3. Esecuzione Promozione
+// Vediamo che futuro ha scelto per questo utente
 if($_SERVER["REQUEST_METHOD"] == "POST") {
     
     
@@ -36,7 +36,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $newRole = "";
     
     if (isset($_POST['new_role'])) {
-        // HIRING OR MANAGING EXISTING FLOW
+        // Se stiamo assumendo o cambiando ruolo
         $newRole = $_POST['new_role'];
         if ($newRole == 'Admin' || $newRole == 'Amministratore') {
             $newLevel = 4; // Admin uses BadgeLevel 4
@@ -48,7 +48,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
             $newLevel = 2; // Tecnico, Magazziniere, Chimico
         }
     } elseif (isset($_POST['new_level'])) {
-        // LEGACY FALLBACK
         $newLevel = intval($_POST['new_level']);
         if ($newLevel == 3) $newRole = "Admin";
         elseif ($newLevel == 2) $newRole = "Dipendente"; // Default generic role for now
@@ -59,11 +58,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // Spostiamo la transazione DENTRO l'IF del POST
+    // Applichiamo i nuovi gradi sul faldone digitale
     $conn->begin_transaction();
 
     try{
-        // Fetch User Data
+        // Prendiamo i dati dell'utente
         $stmt = $conn->prepare("SELECT * FROM Users WHERE Email = ?");
         $stmt->bind_param("s", $targetEmail);
         $stmt->execute();
@@ -113,14 +112,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             
         } else {
-            // 1. Update Badge Level
+            // Cambiamo il livello del badge
             $query = "UPDATE Badges SET BadgeLevel = ? WHERE IdBadge = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("ii", $newLevel, $idBadge);
             $stmt->execute();
             $stmt->close();
 
-            // 2. Handle Employees Table
+            // Aggiorniamo la tabella dei dipendenti
             if ($newLevel > 1) {
                 
                 // Map Role String to IdRole
@@ -131,7 +130,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                 elseif ($newRole == 'Chimico') $idRole = 4;
                 elseif ($newRole == 'Sorveglianza') $idRole = 5;
                 
-                // Check if already in Employees
+                // Vediamo se lavora già qui
                 $check = $conn->query("SELECT IdEmployee FROM Employees WHERE IdEmployee = $idUser");
                 if ($check->num_rows > 0) {
                     // Already employee, update role only if it's hiring flow (new_role is set and not 'Dipendente')
@@ -150,7 +149,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 $descrizioneLog = "Admin " . $_SESSION['user'] . " ha assegnato il ruolo di " . $newRole . " a " . $targetEmail;
             } else {
-                // Demoting to Visitor (Level 1)
+                // Se torna a essere un semplice visitatore
                 // Remove from Employees if exists
                 $stmt = $conn->prepare("DELETE FROM Employees WHERE IdEmployee = ?");
                 $stmt->bind_param("i", $idUser);
@@ -160,7 +159,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        //I log
+        // Segnamo tutto nel registro admin
         $stmtLog = $conn->prepare("INSERT INTO AdminLogs (Description, DateTime) VALUES (?, NOW())");
         $stmtLog->bind_param("s", $descrizioneLog);
         $stmtLog->execute();

@@ -2,7 +2,7 @@
 require "db_connection.php";
 session_start();
 
-// Controllo permessi: Solo Admin (Lev 4) o Sorveglianza possono vedere i log completi
+// Solo i "pezzi grossi" o la sorveglianza vedono tutto
 if (!isset($_SESSION['user'])) {
     header("Location: index.php");
     exit();
@@ -37,9 +37,10 @@ if (!$isAuthorized) {
 <head>
     <meta charset="UTF-8">
     <title>Registro Accessi - Seleziona Data</title>
-    <!-- Includiamo FontAwesome come nel resto del sito -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%234facfe' d='M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C25.5 92 16 110.1 16 130.1c0 231 161.4 336.8 226.7 372.4a47.79 47.79 0 0 0 46.5 0C354.6 466.9 512 361.1 512 130.1c0-20-9.5-38.1-26.6-46.4z'/%3E%3C/svg%3E">
+    <!-- Le solite icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Flatpickr per selezione Date Elegante -->
+    <!-- Calendario per le date -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
     <style>
@@ -75,13 +76,22 @@ if (!$isAuthorized) {
         
         <h1><i class="fas fa-history"></i> Registro Accessi Varchi</h1>
 
-        <!-- Filtro Data -->
+        <!-- Pannello per filtrare i risultati -->
         <div class="filter-card">
-            <form method="GET" action="logs.php">
-                <label for="filter_date" style="font-weight: bold; margin-right: 10px; color: #2c3e50;"><i class="fas fa-calendar-alt"></i> Seleziona Giorno:</label>
-                <?php $currentDate = $_GET['filter_date'] ?? date('Y-m-d'); ?>
-                <input type="text" id="filter_date" class="date-picker-custom" name="filter_date" value="<?php echo htmlspecialchars($currentDate); ?>" placeholder="gg/mm/aaaa">
-                <button type="submit" class="btn"><i class="fas fa-search"></i> Filtra Dati</button>
+            <form method="GET" action="logs.php" style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="filter_date" style="font-weight: bold; color: #2c3e50;"><i class="fas fa-calendar-alt"></i> Giorno:</label>
+                    <?php $currentDate = $_GET['filter_date'] ?? date('Y-m-d'); ?>
+                    <input type="text" id="filter_date" class="date-picker-custom" name="filter_date" value="<?php echo htmlspecialchars($currentDate); ?>" placeholder="gg/mm/aaaa">
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="search_query" style="font-weight: bold; color: #2c3e50;"><i class="fas fa-search"></i> Cerca:</label>
+                    <?php $searchQuery = $_GET['search'] ?? ''; ?>
+                    <input type="text" id="search_query" name="search" value="<?php echo htmlspecialchars($searchQuery); ?>" placeholder="Nome, ruolo, esito..." style="padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; outline: none; width: 200px;">
+                </div>
+
+                <button type="submit" class="btn"><i class="fas fa-filter"></i> Applica Filtri</button>
             </form>
         </div>
 
@@ -100,7 +110,10 @@ if (!$isAuthorized) {
                 </thead>
                 <tbody>
             <?php
-            // QUERY AVANZATA con filtro per Data
+            // Applichiamo i filtri alla ricerca
+            $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
+            $searchParam = "%$searchTerm%";
+
             $sql = "
                 SELECT A.Time, A.Result, G.IdGate as GateName,
                        U.Name as Nome,
@@ -115,18 +128,26 @@ if (!$isAuthorized) {
                 LEFT JOIN Shifts S ON E.IdRole = S.IdRole
                 LEFT JOIN Warnings W ON A.IdAccess = W.IdAccess
                 WHERE DATE(A.Time) = ?
+                AND (
+                    U.Name LIKE ? OR 
+                    U.Surname LIKE ? OR 
+                    CONCAT(U.Name, ' ', U.Surname) LIKE ? OR
+                    S.Role LIKE ? OR 
+                    A.Result LIKE ? OR
+                    G.IdGate LIKE ?
+                )
                 GROUP BY A.IdAccess, A.Time, A.Result, G.IdGate, U.Name, U.Surname, S.Role
                 ORDER BY A.Time DESC
             ";
             
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("s", $currentDate);
+            $stmt->bind_param("sssssss", $currentDate, $searchParam, $searchParam, $searchParam, $searchParam, $searchParam, $searchParam);
             $stmt->execute();
             $result = $stmt->get_result();
 
             if ($result->num_rows > 0) {
                 while($row = $result->fetch_assoc()) {
-                    // Testo esito visuale dinamico
+                    // Scegliamo colore e icona per l'esito
                     switch($row['Result']) {
                         case 'GRANTED': 
                             $esitoText = '<i class="fas fa-check-circle"></i> ACCESSO CONSENTITO'; 
@@ -174,7 +195,7 @@ if (!$isAuthorized) {
                             }
                     }
 
-                    // Se c'è un WARNING specifico dal database, lo integriamo o sostituiamo
+                    // Se c'è un avviso particolare facciamo vedere quello
                     if (!empty($row['WarningReason']) && trim((string)$row['WarningReason']) !== '') {
                         // Sostituiamo il testo generico con la vera motivazione loggata dal trigger/codice
                         $esitoText = '<i class="fas fa-exclamation-triangle"></i> ' . htmlspecialchars($row['WarningReason']);
@@ -195,7 +216,8 @@ if (!$isAuthorized) {
                     echo "</tr>";
                 }
             } else {
-                echo "<tr><td colspan='5' style='text-align:center; padding: 30px; color: #7f8c8d;'><i class='fas fa-folder-open' style='font-size:3em; display:block; margin-bottom:10px; color:#bdc3c7;'></i> Nessun accesso registrato per il giorno <strong>" . htmlspecialchars(date('d/m/Y', strtotime($currentDate))) . "</strong>.</td></tr>";
+                $searchSuffix = $searchTerm ? " e ricerca '<strong>" . htmlspecialchars($searchTerm) . "</strong>'" : "";
+                echo "<tr><td colspan='5' style='text-align:center; padding: 30px; color: #7f8c8d;'><i class='fas fa-folder-open' style='font-size:3em; display:block; margin-bottom:10px; color:#bdc3c7;'></i> Nessun accesso registrato per il giorno <strong>" . htmlspecialchars(date('d/m/Y', strtotime($currentDate))) . "</strong>{$searchSuffix}.</td></tr>";
             }
             $stmt->close();
             ?>
@@ -204,7 +226,7 @@ if (!$isAuthorized) {
         </div>
     </div>
     
-    <!-- Flatpickr JS -->
+    <!-- Script per il calendario -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/it.js"></script>
     <script>

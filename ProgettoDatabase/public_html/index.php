@@ -1,23 +1,23 @@
 <?php 
 session_start();
 
-// 1. Controllo se l'utente è già loggato
+// Controlliamo se ha già fatto il login
 if(isset($_SESSION["user"])) {
     header("Location: dashboard.php");
     exit(); 
 }
 
-// 2. Gestione Errori
+// Vediamo se ci sono messaggi da fargli vedere
 $error_message = '';
 
-if(isset($_SESSION['error_message'])) { // se c'è un errore
-    $error_message = $_SESSION['error_message']; // me lo segno
-    unset($_SESSION['error_message']); // lo rimuovo
+if(isset($_SESSION['error_message'])) { // se c'è stato un problema
+    $error_message = $_SESSION['error_message']; // salviamoci il messaggio
+    unset($_SESSION['error_message']); // poi lo cancelliamo così non ricompare
 } elseif (isset($_GET['error'])) {
-    $error_message = $_GET['error']; // prende l'errore dall'URL
+    $error_message = $_GET['error']; // oppure lo prendiamo dall'indirizzo della pagina
 }
 
-$mode = $_GET['mode'] ?? 'login'; // login di default se non specificato
+$mode = $_GET['mode'] ?? 'login'; // se non sappiamo cosa fare facciamo il login
 
 ?>
 
@@ -27,6 +27,7 @@ $mode = $_GET['mode'] ?? 'login'; // login di default se non specificato
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo ucfirst($mode); ?> - The Facility</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%234facfe' d='M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C25.5 92 16 110.1 16 130.1c0 231 161.4 336.8 226.7 372.4a47.79 47.79 0 0 0 46.5 0C354.6 466.9 512 361.1 512 130.1c0-20-9.5-38.1-26.6-46.4z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -46,7 +47,7 @@ $mode = $_GET['mode'] ?? 'login'; // login di default se non specificato
             position: relative;
         }
 
-        /* Sfondo Animato */
+        /* Lo sfondo che gira */
         body::before {
             content: '';
             position: absolute;
@@ -185,7 +186,7 @@ $mode = $_GET['mode'] ?? 'login'; // login di default se non specificato
             text-decoration: underline;
         }
 
-        /* Error Toast Styled for Glassmorphism */
+        /* Il messaggio di errore (stile vetro) */
         .error-toast {
             background: rgba(220, 53, 69, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.3);

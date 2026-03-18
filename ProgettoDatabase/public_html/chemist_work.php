@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $email = $_SESSION['user'];
 
-// 1. Validate User Role and Position
+// Controlliamo chi è l'utente e dove si trova
 $query = "
     SELECT U.IdBadge, S.Role 
     FROM Users U
@@ -40,7 +40,7 @@ if ($role !== 'Chimico') {
     exit();
 }
 
-// 2. Validate Position
+// Vediamo se è nel posto giusto
 $realLastPos = 1;
 $posQuery = $conn->prepare("SELECT IdSectorTo FROM Accesses WHERE IdBadge = ? AND Result IN ('GRANTED', 'AUTO_EXIT') ORDER BY IdAccess DESC LIMIT 1");
 $posQuery->bind_param("i", $idBadge);
@@ -57,14 +57,14 @@ if (!in_array($realLastPos, $validLabs)) {
     exit();
 }
 
-// 3. Process Quantity
+// Vediamo quanto materiale serve per l'esperimento
 $qtyToConsume = isset($_POST['qty']) ? (int)$_POST['qty'] : 1;
 if ($qtyToConsume < 1 || $qtyToConsume > 5) {
     header("Location: dashboard.php?error=" . urlencode("Quantità non valida (da 1 a 5)."));
     exit();
 }
 
-// 4. Update Inventory for "Sostanze chimiche" (Assuming IdItem = 2)
+// Scaliamo le sostanze chimiche dal magazzino
 $chemicalItemId = 2; // Verify this matches the database
 $checkInv = $conn->prepare("SELECT Quantity, Description FROM Inventory WHERE IdItem = ?");
 $checkInv->bind_param("i", $chemicalItemId);
@@ -85,14 +85,14 @@ if ($currentQty < $qtyToConsume) {
     exit();
 }
 
-// Consume
+// Usiamo le risorse e aggiorniamo il magazzino
 $newQty = $currentQty - $qtyToConsume;
 $updateInv = $conn->prepare("UPDATE Inventory SET Quantity = ? WHERE IdItem = ?");
 $updateInv->bind_param("ii", $newQty, $chemicalItemId);
 if ($updateInv->execute()) {
     $successMsg = "Hai lavorato con successo! Consumate $qtyToConsume unità di Sostanze chimiche.";
 
-    // 5. Emergency Event Generation (5% chance)
+    // Vediamo se oggi la fortuna è dalla nostra o se salta tutto in aria
     $randNum = rand(1, 100);
     if ($randNum <= 5) {
         $eventType = (rand(0, 1) === 0) ? 'Incendio' : 'Fuga di gas';

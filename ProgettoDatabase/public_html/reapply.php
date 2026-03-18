@@ -2,7 +2,7 @@
 require "db_connection.php";
 session_start();
 
-// Controllo Login
+// Vediamo se l'utente è dentro
 if(!isset($_SESSION['user'])) {
     header("Location: index.php");
     exit();
@@ -10,7 +10,7 @@ if(!isset($_SESSION['user'])) {
 
 $email = $_SESSION['user'];
 
-// 1. Dati Utente Corrente
+// Prendiamo i dati dell'utente per vedere chi è
 $query = "
     SELECT U.IdBadge, B.BadgeLevel
     FROM Users U 
@@ -32,13 +32,13 @@ if (!$userData) {
 $badgeLevel = (int)$userData['BadgeLevel'];
 $idBadge = $userData['IdBadge'];
 
-// 2. Controllo Condizione (Solo i Level 0 possono ricandidarsi)
+// Solo chi è stato "bocciato" (livello 0) può riprovare
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($badgeLevel === 0) {
         
         $conn->begin_transaction();
         try {
-            // Aggiorna Badge Level a 1 (In attesa/Visitatore)
+            // Lo rimettiamo come visitatore in attesa
             $updateQuery = "UPDATE Badges SET BadgeLevel = 1 WHERE IdBadge = ?";
             $updStmt = $conn->prepare($updateQuery);
             $updStmt->bind_param("i", $idBadge);
