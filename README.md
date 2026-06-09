@@ -12,7 +12,7 @@
 
 ## 📖 Descrizione del Progetto
 
-**Secure Access** è un'applicazione web sviluppata per gestire, monitorare e tracciare gli accessi fisici all'interno di una struttura aziendale o di un laboratorio.
+**Secure Access** è un'applicazione web sviluppata per il corso di **Database 1** del Corso di Laurea in Informatica (L-31) presso l'Università degli Studi di Messina. 
 
 Il sistema simula e gestisce l'interazione tra utenti (dipendenti e visitatori), badge di vario livello e varchi di sicurezza (Gates) che collegano diversi settori (Sectors). L'obiettivo è fornire un pannello di controllo per registrare le presenze, bloccare accessi non autorizzati o con badge scaduti e gestire le autorizzazioni di ingresso.
 
