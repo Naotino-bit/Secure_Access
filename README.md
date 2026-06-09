@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔐 Secure Access
+# 🛡️ Secure Access
 
 **Un sistema gestionale web per il controllo degli accessi fisici tramite badge e gate di sicurezza.**
 
